@@ -1,51 +1,19 @@
-# New Project Template
+# xAnd11
 
-This repository contains a template you can use to seed a repository for a
-new open source project.
+xAnd11 is an X Window Protocol implementation for Android. Unlike other
+X implementations, xAnd11 aims to integrate with the Android system as much
+as possible. This requires performanig both the role of an X server and a
+window manager at times.
 
-See go/releasing (available externally at
-https://opensource.google.com/docs/releasing/) for more information about
-releasing a new Google open source project.
+Each top-level window will create its own activity/task (allowing them to
+appear in Android's overview). Map/unmap events will control the creation/
+destruction of these activities. The activity's resumed state controls the
+exposing of the window.
 
-This template uses the Apache license, as is Google's default.  See the
-documentation for instructions on using alternate license.
+## Status
 
-## How to use this template
+Currently only some requests are implemented and if non-supported request
+is received then the server may freeze.
 
-1. Check it out from GitHub.
-    * There is no reason to fork it.
-1. Create a new local repository and copy the files from this repo into it.
-1. Develop your new project!
-
-``` shell
-git clone https://github.com/google/new-project
-mkdir my-new-thing
-cd my-new-thing
-git init
-cp ../new-project/* .
-git add *
-git commit -a -m 'Boilerplate for new Google open source project'
-```
-
-## Source Code Headers
-
-Every file containing source code must include copyright and license
-information. This includes any JS/CSS files that you might be serving out to
-browsers. (This is to help well-intentioned people avoid accidental copying that
-doesn't comply with the license.)
-
-Apache header:
-
-    Copyright 2018 Google Inc.
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        https://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+The server has been tested with xclock and xterm and both are able to start
+and xterm is able to run some commands.
