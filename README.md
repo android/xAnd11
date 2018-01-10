@@ -1,5 +1,7 @@
 # xAnd11
 
+This is not an officially supported Google product
+
 xAnd11 is an X Window Protocol implementation for Android. Unlike other
 X implementations, xAnd11 aims to integrate with the Android system as much
 as possible. This requires performanig both the role of an X server and a
