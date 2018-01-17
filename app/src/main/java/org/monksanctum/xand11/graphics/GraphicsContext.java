@@ -62,12 +62,7 @@ public class GraphicsContext {
         mPaint.setStrokeWidth(lineWidth);
         switch (function) {
             case FUNCTION_XOR:
-                try {
-                    mPaint.setXfermode((Xfermode) Class.forName("android.graphics.PixelXorXfermode")
-                            .getConstructor(int.class).newInstance(0xffffffff));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                // TODO: Support this.
                 break;
             default:
                 mPaint.setXfermode(null);
