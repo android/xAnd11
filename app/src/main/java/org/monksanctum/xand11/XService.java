@@ -32,6 +32,7 @@ import org.monksanctum.xand11.comm.AuthManager;
 import org.monksanctum.xand11.comm.Event;
 import org.monksanctum.xand11.comm.Request;
 import org.monksanctum.xand11.comm.ServerListener;
+import org.monksanctum.xand11.display.XScreenSaverProtocol;
 import org.monksanctum.xand11.extension.ExtensionManager;
 import org.monksanctum.xand11.extension.ExtensionProtocol;
 import org.monksanctum.xand11.fonts.FontManager;
@@ -114,6 +115,7 @@ public class XService extends Service {
         mDispatcher.addPacketHandler(new ExtensionProtocol(mExtensionManager));
         mDispatcher.addPacketHandler(new AtomProtocol());
         mDispatcher.addPacketHandler(new FontProtocol(mFontManager, mGraphicsManager));
+        mDispatcher.addPacketHandler(new XScreenSaverProtocol());
 
         mAuthManager = new AuthManager(mInfo, mHostsManager);
         mClientManager = new ClientManager(mAuthManager, mDispatcher);

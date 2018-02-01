@@ -42,6 +42,7 @@ public class FontProtocol implements Dispatcher.PacketHandler {
             Request.LIST_FONTS,
             Request.LIST_FONTS_WITH_INFO,
             Request.QUERY_TEXT_EXTENTS,
+            Request.GET_FONT_PATH,
     };
 
     private final FontManager mFontManager;
@@ -79,7 +80,15 @@ public class FontProtocol implements Dispatcher.PacketHandler {
             case Request.QUERY_TEXT_EXTENTS:
                 handleQueryTextExtents(reader, writer);
                 break;
+            case Request.GET_FONT_PATH:
+                handleGetFontPath(reader, writer);
+                break;
         }
+    }
+
+    private void handleGetFontPath(PacketReader reader, PacketWriter writer) {
+        writer.writeCard16(0); // 0 Font paths
+        writer.writePadding(22);
     }
 
     private void handleListFontsWithInfo(Client client, PacketReader reader, PacketWriter writer) {

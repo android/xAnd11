@@ -35,6 +35,7 @@ public class XInputProtocol implements Dispatcher.PacketHandler {
             Request.SET_SELECTION_OWNER,
             Request.CONVERT_SELECTION,
             Request.QUERY_POINTER,
+            Request.GET_POINTER_CONTROL,
     };
 
     private final XInputManager mManager;
@@ -77,6 +78,9 @@ public class XInputProtocol implements Dispatcher.PacketHandler {
                 break;
             case Request.QUERY_POINTER:
                 handleQueryPointer(reader, writer);
+                break;
+            case Request.GET_POINTER_CONTROL:
+                handleGetPointerControl(reader, writer);
                 break;
         }
     }
@@ -183,5 +187,12 @@ public class XInputProtocol implements Dispatcher.PacketHandler {
 
         writer.writeCard16(0); // Button mask
         writer.writePadding(6);
+    }
+
+    private void handleGetPointerControl(PacketReader reader, PacketWriter writer) {
+        writer.writeCard16(0); // Acceleration-numerator
+        writer.writeCard16(0); // Acceleration-denominator
+        writer.writeCard16(0); // threshold
+        writer.writePadding(18);
     }
 }
