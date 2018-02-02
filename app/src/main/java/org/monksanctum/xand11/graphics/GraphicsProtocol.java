@@ -47,6 +47,7 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
             Request.PUT_IMAGE,
             Request.GET_GEOMETRY,
             Request.IMAGE_TEXT_16,
+            Request.QUERY_BEST_SIZE,
     };
 
     private final GraphicsManager mManager;
@@ -87,7 +88,21 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
             case Request.IMAGE_TEXT_16:
                 handleImageText16(reader, writer);
                 break;
+            case Request.QUERY_BEST_SIZE:
+                handleRequestBestSize(reader, writer);
+                break;
         }
+    }
+
+    private void handleRequestBestSize(PacketReader reader, PacketWriter writer) {
+        byte type = reader.getMinorOpCode();
+        int drawable = reader.readCard32();
+        int width = reader.readCard16();
+        int height = reader.readCard16();
+
+        writer.writeCard16(width);
+        writer.writeCard16(height);
+        writer.writePadding(20);
     }
 
     private void handleGetGeometry(PacketReader reader, PacketWriter writer) throws DrawableError {

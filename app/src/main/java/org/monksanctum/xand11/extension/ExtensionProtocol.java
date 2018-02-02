@@ -21,6 +21,8 @@ import org.monksanctum.xand11.comm.PacketWriter;
 import org.monksanctum.xand11.comm.Request;
 import org.monksanctum.xand11.comm.XProtoWriter.WriteException;
 
+import java.util.Set;
+
 public class ExtensionProtocol implements Dispatcher.PacketHandler {
 
     private static final byte[] HANDLED_OPS = new byte[] {
@@ -64,12 +66,15 @@ public class ExtensionProtocol implements Dispatcher.PacketHandler {
 
     private void handleListExtension(PacketReader packet, PacketWriter writer) {
         int count = 0;
-        for (String name : mExtensionManager.getExtensions()) {
+        Set<String> exts = mExtensionManager.getExtensions();
+        writer.setMinorOpCode((byte) exts.size());
+        writer.writePadding(24);
+        for (String name : exts) {
             writer.writeString(name);
             writer.writeByte((byte) 0);
             count += name.length() + 1;
         }
-        while ((count % 4) != 0) {
+        while ((count++ % 4) != 0) {
             writer.writePadding(1);
         }
     }
