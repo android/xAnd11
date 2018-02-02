@@ -248,7 +248,7 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
                     }
                 }
             };
-            gc.createPaint();
+            gc.createPaint(mFontManager);
             // Eat up the extra bytes so we don't get a warning.
             // This is expected to have some arbitrary padding.
             reader.readPadding(reader.getRemaining());

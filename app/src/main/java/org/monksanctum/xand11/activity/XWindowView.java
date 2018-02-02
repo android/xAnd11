@@ -145,16 +145,18 @@ public class XWindowView extends ViewGroup implements WindowCallback {
 
     @Override
     public void onChildMappingChanged(XWindow child) {
-        if ((child.getVisibility() & XWindow.FLAG_MAPPED) != 0) {
-            addView(new XWindowView(getContext(), child));
-        } else {
-            for (int i = 0; i <= getChildCount(); i++) {
-                if (((XWindowView) getChildAt(i)).mWindow == child) {
-                    removeViewAt(i);
-                    return;
+        post(() -> {
+            if ((child.getVisibility() & XWindow.FLAG_MAPPED) != 0) {
+                addView(new XWindowView(getContext(), child));
+            } else {
+                for (int i = 0; i <= getChildCount(); i++) {
+                    if (((XWindowView) getChildAt(i)).mWindow == child) {
+                        removeViewAt(i);
+                        return;
+                    }
                 }
             }
-        }
+        });
     }
 
     @Override
@@ -168,11 +170,6 @@ public class XWindowView extends ViewGroup implements WindowCallback {
     }
 
     protected void postRequestLayout() {
-        post(new Runnable() {
-            @Override
-            public void run() {
-                requestLayout();
-            }
-        });
+        post(() -> requestLayout());
     }
 }

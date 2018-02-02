@@ -18,6 +18,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Path;
+import android.graphics.Rect;
 import android.util.Log;
 import android.util.Pair;
 
@@ -26,9 +27,14 @@ import org.monksanctum.xand11.Dispatcher.PacketHandler;
 import org.monksanctum.xand11.comm.PacketReader;
 import org.monksanctum.xand11.comm.PacketWriter;
 import org.monksanctum.xand11.comm.Request;
+import org.monksanctum.xand11.comm.XProtoReader;
+import org.monksanctum.xand11.comm.XProtoWriter;
+import org.monksanctum.xand11.comm.XSerializable;
 import org.monksanctum.xand11.errors.DrawableError;
 import org.monksanctum.xand11.errors.GContextError;
 import org.monksanctum.xand11.errors.XError;
+import org.monksanctum.xand11.fonts.Font;
+import org.monksanctum.xand11.fonts.FontManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,12 +49,16 @@ public class DrawingProtocol implements PacketHandler {
             Request.POLY_SEGMENT,
             Request.FILL_POLY,
             Request.POLY_LINE,
+            Request.POLY_TEXT_8,
     };
 
     private final GraphicsManager mGraphics;
+    private final FontManager mFontManager;
+    private final Rect mBounds = new Rect();
 
-    public DrawingProtocol(GraphicsManager manager) {
+    public DrawingProtocol(GraphicsManager manager, FontManager fontManager) {
         mGraphics = manager;
+        mFontManager = fontManager;
     }
 
     @Override
@@ -69,7 +79,48 @@ public class DrawingProtocol implements PacketHandler {
             case Request.POLY_SEGMENT:
                 handlePolySegment(reader);
                 break;
+            case Request.POLY_TEXT_8:
+                handlePolyText8(reader);
+                break;
         }
+    }
+
+    private void handlePolyText8(PacketReader reader) throws XError {
+        XDrawable drawable = mGraphics.getDrawable(reader.readCard32());
+        GraphicsContext gContext = mGraphics.getGc(reader.readCard32());
+        int x = reader.readCard16();
+        int y = reader.readCard16();
+        Canvas c = drawable.lockCanvas();
+        Paint paint = gContext.getPaint();
+        Log.d(TAG, "Poly text " + Integer.toHexString(paint.getColor()) + " " + Integer.toHexString(gContext.font));
+        TextItem8 item = new TextItem8();
+        while (reader.getRemaining() > 1) {
+            try {
+                item.read(reader);
+            } catch (XProtoReader.ReadException e) {
+                // Not possible here.
+                throw new RuntimeException(e);
+            }
+            if (item.mFontShift) {
+                int font = item.mFont;
+                Font f = mFontManager.getFont(font);
+                Log.d(TAG, "Font: " + Integer.toHexString(font));
+                paint = gContext.applyToPaint(f.getPaint());
+            } else {
+                x += item.mDelta;
+                Font.getTextBounds(item.mValue, paint, x, y, mBounds);
+
+                paint.setColor(gContext.foreground);
+                c.drawText(item.mValue, x, y, paint);
+                Log.d(TAG, "Text: " + item.mDelta + " " + item.mValue + " " + x + " " + y + " " + c.getWidth() + " " + c.getHeight() + " " + mBounds);
+                x += mBounds.width();
+            }
+        }
+        if (reader.getRemaining() != 0) {
+            // Just to avoid the warnings, read the last byte.
+            reader.readPadding(1);
+        }
+        drawable.unlockCanvas();
     }
 
     private void handlePolyLine(PacketReader reader) throws DrawableError, GContextError {
@@ -149,5 +200,44 @@ public class DrawingProtocol implements PacketHandler {
         }
         //p.lineTo(startX, startY);
         return p;
+    }
+
+    static class TextItem8 implements XSerializable {
+
+        private byte mDelta;
+        private String mValue;
+        private boolean mFontShift;
+        private int mFont;
+
+        @Override
+        public void read(XProtoReader reader) throws XProtoReader.ReadException {
+            int len = reader.readByte();
+            if (len == 255) {
+                mFontShift = true;
+                int f3 = reader.readByte();
+                int f2 = reader.readByte();
+                int f1 = reader.readByte();
+                mFont = (f3 << 24) | (f2 << 16) | (f1 << 8) | reader.readByte();
+            } else {
+                mFontShift = false;
+                mDelta = reader.readByte();
+                mValue = reader.readString(len);
+            }
+        }
+
+        @Override
+        public void write(XProtoWriter writer) throws XProtoWriter.WriteException {
+            if (mFontShift) {
+                writer.writeByte((byte) 255);
+                writer.writeByte((byte) (mFont >> 24));
+                writer.writeByte((byte) (mFont >> 16));
+                writer.writeByte((byte) (mFont >> 8));
+                writer.writeByte((byte) (mFont >> 0));
+            } else {
+                writer.writeByte((byte) mValue.length());
+                writer.writeByte(mDelta);
+                writer.writeString(mValue);
+            }
+        }
     }
 }

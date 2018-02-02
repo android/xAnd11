@@ -109,7 +109,7 @@ public class XService extends Service {
         mDispatcher.addPacketHandler(new XInputProtocol(mInputManager, mWindowManager));
         mDispatcher.addPacketHandler(new HostsProtocol(mHostsManager));
         mDispatcher.addPacketHandler(new GraphicsProtocol(mGraphicsManager, mFontManager));
-        mDispatcher.addPacketHandler(new DrawingProtocol(mGraphicsManager));
+        mDispatcher.addPacketHandler(new DrawingProtocol(mGraphicsManager, mFontManager));
         mDispatcher.addPacketHandler(new ColorProtocol(mGraphicsManager));
         mDispatcher.addPacketHandler(new XWindowProtocol(mWindowManager));
         mDispatcher.addPacketHandler(new ExtensionProtocol(mExtensionManager));

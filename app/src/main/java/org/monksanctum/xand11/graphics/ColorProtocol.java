@@ -25,12 +25,17 @@ import org.monksanctum.xand11.errors.XError;
 import org.monksanctum.xand11.graphics.ColorMaps.Color;
 import org.monksanctum.xand11.graphics.ColorMaps.ColorMap;
 
+import static android.graphics.Color.blue;
+import static android.graphics.Color.green;
+import static android.graphics.Color.red;
+
 public class ColorProtocol implements PacketHandler {
 
     private static final byte[] HANDLED_OPS = {
             Request.QUERY_COLORS,
             Request.ALLOC_COLOR,
             Request.LOOKUP_COLOR,
+            Request.ALLOC_NAMED_COLOR,
     };
 
     private final GraphicsManager mGraphics;
@@ -59,7 +64,47 @@ public class ColorProtocol implements PacketHandler {
             case Request.LOOKUP_COLOR:
                 handleLookupColor(reader, writer);
                 break;
+            case Request.ALLOC_NAMED_COLOR:
+                handleAllocNamedColor(reader, writer);
+                break;
         }
+    }
+
+    private void handleAllocNamedColor(PacketReader reader, PacketWriter writer) throws XError {
+        ColorMap map = mColorMaps.get(reader.readCard32());
+        int len = reader.readCard16();
+        reader.readPadding(2);
+        String str = reader.readPaddedString(len);
+        Integer color = ColorMap.sColorLookup.get(str.toLowerCase());
+        if (color == null) {
+            throw new XError(XError.NAME, "Color not found: " + str) {
+                @Override
+                public int getExtraData() {
+                    return 0;
+                }
+            };
+        }
+        int	r = red(color);
+        int	g = green(color);
+        int	b = blue(color);
+        synchronized (map) {
+            Color c = map.getColor(r, g, b);
+
+            try {
+                //Color color = map.colors.get(color);
+                c.write(writer);
+                int cInt = c.color();
+                writer.writeCard32(cInt);
+            } catch (WriteException e) {
+            }
+        }
+        writer.writeCard16((r << 8) | r);
+        writer.writeCard16((g << 8) | g);
+        writer.writeCard16((b << 8) | b);
+        writer.writeCard16((r << 8) | r);
+        writer.writeCard16((g << 8) | g);
+        writer.writeCard16((b << 8) | b);
+        writer.writePadding(8);
     }
 
     private void handleLookupColor(PacketReader reader, PacketWriter writer) throws XError {
@@ -77,9 +122,9 @@ public class ColorProtocol implements PacketHandler {
             };
         }
 
-        int	r = android.graphics.Color.red(color);
-        int	g = android.graphics.Color.green(color);
-        int	b = android.graphics.Color.blue(color);
+        int	r = red(color);
+        int	g = green(color);
+        int	b = blue(color);
         writer.writeCard16((r << 8) | r);
         writer.writeCard16((g << 8) | g);
         writer.writeCard16((b << 8) | b);

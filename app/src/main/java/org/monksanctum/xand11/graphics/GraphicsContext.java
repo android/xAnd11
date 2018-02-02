@@ -20,6 +20,8 @@ import android.graphics.Paint.Join;
 import android.graphics.Xfermode;
 
 import org.monksanctum.xand11.errors.ValueError;
+import org.monksanctum.xand11.fonts.Font;
+import org.monksanctum.xand11.fonts.FontManager;
 
 public class GraphicsContext {
 
@@ -56,41 +58,46 @@ public class GraphicsContext {
         mId = id;
     }
 
-    public void createPaint() throws ValueError {
-        mPaint = new Paint();
-        mPaint.setColor(foreground | 0xff000000);
-        mPaint.setStrokeWidth(lineWidth);
+    public Paint applyToPaint(Paint p) {
+        p.setColor(foreground | 0xff000000);
+        p.setStrokeWidth(lineWidth);
         switch (function) {
             case FUNCTION_XOR:
                 // TODO: Support this.
                 break;
             default:
-                mPaint.setXfermode(null);
+                p.setXfermode(null);
                 break;
         }
         switch (capStyle) {
             case CAP_STYLE_NOT_LAST:
             case CAP_STYLE_BUTT:
-                mPaint.setStrokeCap(Cap.BUTT);
+                p.setStrokeCap(Cap.BUTT);
                 break;
             case CAP_STYLE_ROUND:
-                mPaint.setStrokeCap(Cap.ROUND);
+                p.setStrokeCap(Cap.ROUND);
                 break;
             case CAP_STYLE_PROJECTING:
-                mPaint.setStrokeCap(Cap.SQUARE);
+                p.setStrokeCap(Cap.SQUARE);
                 break;
         }
         switch (joinStyle) {
             case JOIN_STYLE_MITER:
-                mPaint.setStrokeJoin(Join.MITER);
+                p.setStrokeJoin(Join.MITER);
                 break;
             case JOIN_STYLE_ROUND:
-                mPaint.setStrokeJoin(Join.ROUND);
+                p.setStrokeJoin(Join.ROUND);
                 break;
             case JOIN_STYLE_BEVEL:
-                mPaint.setStrokeJoin(Join.BEVEL);
+                p.setStrokeJoin(Join.BEVEL);
                 break;
         }
+        return p;
+    }
+
+    public void createPaint(FontManager fontManager) throws ValueError {
+        Font f = fontManager.getFont(font);
+        mPaint = applyToPaint(f != null ? f.getPaint() : new Paint());
     }
 
     public static final byte FUNCTION_CLEAR = 0;

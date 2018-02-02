@@ -88,7 +88,29 @@ public class FontSpec {
 
     private final String[] mSpecs = new String[NUM_FIELDS];
 
+    private final String[] FIXED_LOOKUPS = new String[]{
+            "5x7", "-*-fixed-medium-r-normal--7-70-75-75-c-50-ISO10646-1",
+            "5x8", "-*-fixed-medium-r-normal--8-80-75-75-c-50-ISO10646-1",
+            "6x9", "-*-fixed-medium-r-normal--9-90-75-75-c-60-ISO10646-1",
+            "6x10", "-*-fixed-medium-r-normal--10-100-75-75-c-60-ISO10646-1",
+            "7x13", "-*-fixed-medium-r-normal--13-120-75-75-c-70-ISO10646-1",
+            "7x13B", "-*-fixed-bold-r-normal--13-120-75-75-c-70-ISO10646-1",
+            "7x14", "-*-fixed-medium-r-normal--14-130-75-75-c-70-ISO10646-1",
+            "7x14B", "-*-fixed-bold-r-normal--14-130-75-75-c-70-ISO10646-1",
+            "8x13", "-*-fixed-medium-r-normal--13-120-75-75-c-80-ISO10646-1",
+            "8x13B", "-*-fixed-bold-r-normal--13-120-75-75-c-80-ISO10646-1",
+            "9x15", "-*-fixed-medium-r-normal--15-140-75-75-c-90-ISO10646-1",
+            "9x15B", "-*-fixed-bold-r-normal--15-140-75-75-c-90-ISO10646-1",
+            "10x20", "-*-fixed-medium-r-normal--20-200-75-75-c-100-ISO10646-1",
+            // TODO: Support these.
+//            "6x12", "-*-fixed-medium-r-Semicondensed--12-110-75-75-c-60-ISO10646-1",
+//            "6x13", "-*-fixed-medium-r-SemiCondensed--13-120-75-75-c-60-ISO10646-1",
+//            "6x13B", "-*-fixed-bold-r-SemiCondensed--13-120-75-75-c-60-ISO10646-1",
+    };
+
+
     public FontSpec(String spec) {
+        spec = checkFixed(spec);
         String[] fields = spec.split("-");
         if (spec.equals(Font.DEFAULT) || spec.equals(Font.FIXED)) {
             mSpecs[0] = spec;
@@ -102,6 +124,16 @@ public class FontSpec {
         for (int i = 0; i < NUM_FIELDS; i++) {
             mSpecs[i] = fields[i];
         }
+    }
+
+    private String checkFixed(String spec) {
+        for (int i = 0; i < FIXED_LOOKUPS.length; i++) {
+            if (FIXED_LOOKUPS[i].equals(spec)) {
+                return FIXED_LOOKUPS[i + 1];
+            }
+            i++;
+        }
+        return spec;
     }
 
     private FontSpec(String[] specs) {

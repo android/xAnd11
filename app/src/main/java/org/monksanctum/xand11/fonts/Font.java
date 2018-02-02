@@ -194,6 +194,11 @@ public class Font {
         rect.bottom = y + maxBounds.descent;
     }
 
+    public static void getTextBounds(String str, Paint paint, int x, int y, Rect rect) {
+        paint.getTextBounds(str, 0, str.length(), rect);
+        rect.offset(x, y);
+    }
+
     public static class FontProperty {
         public int name; // Atom
         public int value;

@@ -235,6 +235,7 @@ public class XWindowProtocol implements Dispatcher.PacketHandler {
                             break;
                         case 0x02:
                             int color = reader.readCard32();
+                            Log.d("XWindowProtocol", "Window background " + Integer.toHexString(color));
                             window.setBackground(new ColorPaintable(color));
                             break;
                         case 0x04:
