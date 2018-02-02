@@ -1,7 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <SwitchPreference
+        android:key="auto_start"
+        android:title="@string/auto_start"
+        android:persistent="true" />
+
     <org.monksanctum.xand11.ui.ServiceRunningPreference
         android:title="@string/service_enabled" />
+
+    <ListPreference
+        android:key="display"
+        android:title="@string/display"
+        android:summary="%s"
+        android:defaultValue="6001"
+        android:entries="@array/displays"
+        android:entryValues="@array/display_values" />
 
 </PreferenceScreen>

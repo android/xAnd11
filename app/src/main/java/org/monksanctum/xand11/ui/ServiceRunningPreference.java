@@ -14,37 +14,48 @@
 
 package org.monksanctum.xand11.ui;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.support.v14.preference.SwitchPreference;
+import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.preference.Preference;
 import android.util.AttributeSet;
 
 import org.monksanctum.xand11.XService;
 
 public class ServiceRunningPreference extends SwitchPreference implements
-        LifecyclePreferenceFragment.LifecyclePreference{
+        LifecyclePreferenceFragment.LifecyclePreference {
 
     public ServiceRunningPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
-    }
-
-    @Override
-    protected boolean persistBoolean(boolean value) {
-        if (value) {
-            getContext().startService(new Intent(getContext(), XService.class));
-        } else {
-            getContext().stopService(new Intent(getContext(), XService.class));
-        }
-        return super.persistBoolean(value);
+        setOnPreferenceChangeListener((preference, newValue) -> {
+            if (((Boolean) newValue)) {
+                getContext().startService(new Intent(getContext(), XService.class));
+            } else {
+                getContext().stopService(new Intent(getContext(), XService.class));
+            }
+            return false;
+        });
     }
 
     @Override
     public void onResume() {
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(mReceiver,
+                new IntentFilter(XService.STATE_CHANGED));
         setChecked(XService.isRunning());
     }
 
     @Override
     public void onPause() {
-
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mReceiver);
     }
+
+    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            setChecked(XService.isRunning());
+        }
+    };
 }

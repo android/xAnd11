@@ -4,4 +4,6 @@
     <string name="service_name">Xand11 Service</string>
     <string name="service_description">X11 Server for Android</string>
     <string name="service_enabled">Service enabled</string>
+    <string name="auto_start">Auto start</string>
+    <string name="display">Display</string>
 </resources>

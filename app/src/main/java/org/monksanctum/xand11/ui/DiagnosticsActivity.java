@@ -23,6 +23,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import org.monksanctum.xand11.R;
+import org.monksanctum.xand11.XService;
 
 
 public class DiagnosticsActivity extends Activity {
@@ -30,6 +31,7 @@ public class DiagnosticsActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        XService.checkAutoStart(this);
         setContentView(R.layout.activity_diagnostics);
 
         FragmentTransaction transaction = getFragmentManager().beginTransaction();

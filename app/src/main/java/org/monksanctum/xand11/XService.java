@@ -19,11 +19,13 @@ import android.app.Notification.Builder;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import org.monksanctum.xand11.activity.XActivityManager;
@@ -53,6 +55,8 @@ import org.monksanctum.xand11.windows.XWindowProtocol;
 public class XService extends Service {
 
     private static final String TAG = "XService";
+
+    public static final String STATE_CHANGED = "org.monksanctum.xand11.action.STATE_CHANGED";
     private static final boolean DEBUG = true;
 
     public static final boolean COMM_DEBUG = false;
@@ -99,6 +103,7 @@ public class XService extends Service {
         Notification n = builder.build();
         startForeground(NOTIF_ID, n);
         sRunning = true;
+        LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(STATE_CHANGED));
 
         if (DEBUG) Log.d(TAG, "Starting up server...");
         Request.populateNames();
@@ -119,7 +124,9 @@ public class XService extends Service {
 
         mAuthManager = new AuthManager(mInfo, mHostsManager);
         mClientManager = new ClientManager(mAuthManager, mDispatcher);
-        mListener = new ServerListener(6001, mClientManager);
+        int port = Integer.parseInt(getSharedPreferences(
+                getPackageName() + "_preferences", 0).getString("display", "6000"));
+        mListener = new ServerListener(port, mClientManager);
         mListener.open();
     }
 
@@ -128,6 +135,7 @@ public class XService extends Service {
         if (DEBUG) Log.d(TAG, "onDestroy");
         super.onDestroy();
         sRunning = false;
+        LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(STATE_CHANGED));
         mListener.close();
     }
 
@@ -170,6 +178,14 @@ public class XService extends Service {
     }
 
     private final LocalService mLocalService = new LocalService();
+
+    public static void checkAutoStart(Context context) {
+        Log.d("TestTest", "Check start " + !isRunning());
+        if (!isRunning() && context.getSharedPreferences(
+                context.getPackageName() + "_preferences", 0).getBoolean("auto_start", false)) {
+            context.startService(new Intent(context, XService.class));
+        }
+    }
 
     private class LocalService extends Binder {
         private XService getService() {
