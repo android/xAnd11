@@ -17,6 +17,7 @@ package org.monksanctum.xand11.windows;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
 import android.util.SparseArray;
@@ -291,7 +292,8 @@ public class XWindow implements XDrawable {
         }
         if (mBitmap != null) {
             // TODO: Need to handle copying the content based on gravity.
-            mBitmap = Bitmap.createBitmap(mBounds.width(), mBounds.height(), Config.ARGB_8888);
+            mBitmap = Bitmap.createBitmap(Math.max(mBounds.width(), 1),
+                    Math.max(mBounds.height(), 1), Config.ARGB_8888);
             mCanvas = new Canvas(mBitmap);
             initBackground();
         }
@@ -698,6 +700,13 @@ public class XWindow implements XDrawable {
             }
             callback.onEvent(info);
         }
+    }
+
+    @Override
+    public void read(Bitmap bitmap, int x, int y, int width, int height) {
+        Canvas c = new Canvas(bitmap);
+        c.drawBitmap(mBitmap, new Rect(x, y, width, height), new Rect(0, 0, width, height),
+                new Paint());
     }
 
     public interface EventCallback {

@@ -103,6 +103,15 @@ public class PacketReader extends XProtoReader implements AutoCloseable {
     }
 
     @Override
+    public int readInt16() {
+        try {
+            return super.readInt16();
+        } catch (ReadException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public int readChar16() {
         try {
             return super.readChar16();

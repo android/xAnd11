@@ -149,12 +149,7 @@ public class Event {
         writer.writeCard16(0); // What?
         writer.writePadding(14);
 
-        Utils.sBgHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                client.getClientListener().sendPacket(EXPOSE, writer);
-            }
-        });
+        Utils.sBgHandler.post(() -> client.getClientListener().sendPacket(EXPOSE, writer));
     }
 
     public static void sendConfigureWindow(final Client client, int event, int window, int sibling,

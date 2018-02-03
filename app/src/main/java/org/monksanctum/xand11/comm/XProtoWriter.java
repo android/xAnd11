@@ -78,9 +78,9 @@ public class XProtoWriter {
     }
 
     public void writeCard16(int card16) throws WriteException {
-        if ((card16 & ~0xffff) != 0) {
-            throw new IllegalArgumentException(card16 + " is not a card16");
-        }
+        //if ((card16 & ~0xffff) != 0) {
+        //    throw new IllegalArgumentException(card16 + " is not a card16");
+        //}
         if (mMsb) {
             writeByte(card16 >> 8);
             writeByte(card16);

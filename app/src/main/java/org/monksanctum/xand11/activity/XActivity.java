@@ -118,9 +118,11 @@ public class XActivity extends Activity {
     private void updateTitle() {
         synchronized (mRootWindow) {
             Property prop = mRootWindow.getPropertyLocked(AtomManager.WM_NAME, false);
-            synchronized (prop) {
-                String v = new String(prop.value);
-                setTitle(v);
+            if (prop != null) {
+                synchronized (prop) {
+                    String v = new String(prop.value);
+                    setTitle(v);
+                }
             }
         }
     }

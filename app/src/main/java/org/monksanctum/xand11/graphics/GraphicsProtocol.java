@@ -45,6 +45,7 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
             Request.CREATE_PIXMAP,
             Request.FREE_PIXMAP,
             Request.PUT_IMAGE,
+            Request.GET_IMAGE,
             Request.GET_GEOMETRY,
             Request.IMAGE_TEXT_16,
             Request.QUERY_BEST_SIZE,
@@ -81,6 +82,9 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
                 break;
             case Request.PUT_IMAGE:
                 handlePutImage(reader);
+                break;
+            case Request.GET_IMAGE:
+                handleGetImage(reader, writer);
                 break;
             case Request.GET_GEOMETRY:
                 handleGetGeometry(reader, writer);
@@ -147,6 +151,31 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
             if (DEBUG) Log.d(TAG, "Drawing bitmap " + x + " " + y + " " + bitmap.getWidth() + " "
                     + bitmap.getHeight());
             drawable.unlockCanvas();
+        }
+    }
+
+    private void handleGetImage(PacketReader reader, PacketWriter writer) throws XError {
+        int drawableId = reader.readCard32();
+        int x = reader.readCard16(); // Should be Int16
+        int y = reader.readCard16(); // Should be Int16
+        int width = reader.readCard16();
+        int height = reader.readCard16();
+        int planeMask = reader.readCard32();
+        byte format = reader.getMinorOpCode();
+
+        XDrawable drawable = mManager.getDrawable(drawableId);
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        synchronized (drawable) {
+            drawable.read(bitmap, x, y, width, height);
+        }
+
+        writer.setMinorOpCode((byte) drawable.getDepth());
+        writer.writeCard32(drawableId);
+        writer.writePadding(20);
+        if (format == ZPIXMAP) {
+            GraphicsUtils.writeZBitmap(writer, width, height, bitmap);
+        } else {
+            GraphicsUtils.writeBitmap(writer, (byte) 0, width, height, (byte) 32, null, bitmap);
         }
     }
 

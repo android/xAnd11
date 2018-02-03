@@ -14,6 +14,7 @@
 
 package org.monksanctum.xand11.graphics;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 
 public interface XDrawable {
@@ -29,4 +30,6 @@ public interface XDrawable {
     int getBorderWidth();
     int getWidth();
     int getHeight();
+
+    void read(Bitmap bitmap, int x, int y, int width, int height);
 }

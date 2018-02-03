@@ -50,6 +50,7 @@ public class DrawingProtocol implements PacketHandler {
             Request.FILL_POLY,
             Request.POLY_LINE,
             Request.POLY_TEXT_8,
+            Request.POLY_FILL_RECTANGLE,
     };
 
     private final GraphicsManager mGraphics;
@@ -82,6 +83,30 @@ public class DrawingProtocol implements PacketHandler {
             case Request.POLY_TEXT_8:
                 handlePolyText8(reader);
                 break;
+            case Request.POLY_FILL_RECTANGLE:
+                handlePolyFillRectangle(reader);
+                break;
+        }
+    }
+
+    private void handlePolyFillRectangle(PacketReader reader) throws XError {
+        XDrawable drawable = mGraphics.getDrawable(reader.readCard32());
+        GraphicsContext gContext = mGraphics.getGc(reader.readCard32());
+        Rectangle r = new Rectangle();
+        Paint p = gContext.getPaint();
+        p.setStyle(Style.FILL);
+        synchronized (drawable) {
+            Canvas canvas = drawable.lockCanvas();
+            while (reader.getRemaining() != 0) {
+                try {
+                    r.read(reader);
+                    canvas.drawRect(r.r, p);
+                } catch (XProtoReader.ReadException e) {
+                    // Not possible here.
+                    throw new RuntimeException(e);
+                }
+            }
+            drawable.unlockCanvas();
         }
     }
 
@@ -92,7 +117,6 @@ public class DrawingProtocol implements PacketHandler {
         int y = reader.readCard16();
         Canvas c = drawable.lockCanvas();
         Paint paint = gContext.getPaint();
-        Log.d(TAG, "Poly text " + Integer.toHexString(paint.getColor()) + " " + Integer.toHexString(gContext.font));
         TextItem8 item = new TextItem8();
         while (reader.getRemaining() > 1) {
             try {
@@ -104,7 +128,6 @@ public class DrawingProtocol implements PacketHandler {
             if (item.mFontShift) {
                 int font = item.mFont;
                 Font f = mFontManager.getFont(font);
-                Log.d(TAG, "Font: " + Integer.toHexString(font));
                 paint = gContext.applyToPaint(f.getPaint());
             } else {
                 x += item.mDelta;
@@ -112,7 +135,6 @@ public class DrawingProtocol implements PacketHandler {
 
                 paint.setColor(gContext.foreground);
                 c.drawText(item.mValue, x, y, paint);
-                Log.d(TAG, "Text: " + item.mDelta + " " + item.mValue + " " + x + " " + y + " " + c.getWidth() + " " + c.getHeight() + " " + mBounds);
                 x += mBounds.width();
             }
         }
@@ -200,6 +222,26 @@ public class DrawingProtocol implements PacketHandler {
         }
         //p.lineTo(startX, startY);
         return p;
+    }
+
+    static class Rectangle implements XSerializable {
+        private final Rect r = new Rect();
+
+        @Override
+        public void write(XProtoWriter writer) throws XProtoWriter.WriteException {
+            writer.writeCard16(r.left);
+            writer.writeCard16(r.top);
+            writer.writeCard16(r.width());
+            writer.writeCard16(r.height());
+        }
+
+        @Override
+        public void read(XProtoReader reader) throws XProtoReader.ReadException {
+            r.left = reader.readCard16();
+            r.top = reader.readCard16();
+            r.right = r.left + reader.readCard16();
+            r.bottom = r.top + reader.readCard16();
+        }
     }
 
     static class TextItem8 implements XSerializable {

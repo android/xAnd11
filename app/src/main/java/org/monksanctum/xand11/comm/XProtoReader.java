@@ -100,6 +100,16 @@ public class XProtoReader {
         }
     }
 
+    public int readInt16() throws ReadException {
+        byte first = readByte();
+        byte second = readByte();
+        if (mMsb) {
+            return (first << 8) | unsigned(second);
+        } else {
+            return (second << 8) | unsigned(first);
+        }
+    }
+
     public int readCard32() throws ReadException {
         int first = readCard16();
         int second = readCard16();

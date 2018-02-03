@@ -15,7 +15,6 @@
 package org.monksanctum.xand11.windows;
 
 import android.graphics.Rect;
-import android.util.Log;
 
 import org.monksanctum.xand11.Client;
 import org.monksanctum.xand11.Dispatcher;
@@ -31,12 +30,6 @@ import org.monksanctum.xand11.errors.WindowError;
 import org.monksanctum.xand11.errors.XError;
 import org.monksanctum.xand11.graphics.ColorPaintable;
 import org.monksanctum.xand11.windows.XWindow.Property;
-
-import static org.monksanctum.xand11.windows.XWindow.STACK_ABOVE;
-import static org.monksanctum.xand11.windows.XWindow.STACK_BELOW;
-import static org.monksanctum.xand11.windows.XWindow.STACK_BOTTOM_IF;
-import static org.monksanctum.xand11.windows.XWindow.STACK_OPPOSITE;
-import static org.monksanctum.xand11.windows.XWindow.STACK_TOP_IF;
 
 public class XWindowProtocol implements Dispatcher.PacketHandler {
 
@@ -192,8 +185,8 @@ public class XWindowProtocol implements Dispatcher.PacketHandler {
         }
         int windowId = reader.readCard32();
         int parentId = reader.readCard32();
-        int x = reader.readCard16();
-        int y = reader.readCard16();
+        int x = reader.readInt16();
+        int y = reader.readInt16();
         int width = reader.readCard16();
         int height = reader.readCard16();
         int borderWidth = reader.readCard16();

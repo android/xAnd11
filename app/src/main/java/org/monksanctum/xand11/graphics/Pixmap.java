@@ -121,6 +121,13 @@ public class Pixmap implements XDrawable, XPaintable {
         return mBitmap.getHeight();
     }
 
+    @Override
+    public void read(Bitmap bitmap, int x, int y, int width, int height) {
+        Canvas c = new Canvas(bitmap);
+        c.drawBitmap(mBitmap, new Rect(x, y, width, height), new Rect(0, 0, width, height),
+                new Paint());
+    }
+
     public int getDepth() {
         return mDepth;
     }
