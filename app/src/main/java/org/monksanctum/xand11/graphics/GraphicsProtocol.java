@@ -49,6 +49,7 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
             Request.GET_GEOMETRY,
             Request.IMAGE_TEXT_16,
             Request.QUERY_BEST_SIZE,
+            Request.COPY_PLANE,
     };
 
     private final GraphicsManager mManager;
@@ -94,6 +95,9 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
                 break;
             case Request.QUERY_BEST_SIZE:
                 handleRequestBestSize(reader, writer);
+                break;
+            case Request.COPY_PLANE:
+                handleCopyPlane(reader, writer);
                 break;
         }
     }
@@ -192,6 +196,38 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
     private void handleFreePixmap(PacketReader reader) {
         int pixmap = reader.readCard32();
         mManager.freePixmap(pixmap);
+    }
+
+    private void handleCopyPlane(PacketReader reader, PacketWriter writer) throws XError {
+        int srcDrawableId = reader.readCard32();
+        int destDrawableId = reader.readCard32();
+        int gcontextId = reader.readCard32();
+        int srcX = reader.readInt16();
+        int srcY = reader.readInt16();
+        int destX = reader.readInt16();
+        int destY = reader.readInt16();
+        int width = reader.readCard16();
+        int height = reader.readCard16();
+        int bitPlane = reader.readCard32();
+
+        XDrawable src = mManager.getDrawable(srcDrawableId);
+        XDrawable dest = mManager.getDrawable(destDrawableId);
+        GraphicsContext gc = mManager.getGc(gcontextId);
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        synchronized (src) {
+            src.read(bitmap, srcX, srcY, width, height);
+        }
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                bitmap.setPixel(j, i, (bitmap.getPixel(j, i) & bitPlane) != 0
+                        ? gc.foreground : gc.background);
+            }
+        }
+        synchronized (dest) {
+            Canvas c = dest.lockCanvas(gc);
+            c.drawBitmap(bitmap, destX, destY, gc.getPaint());
+            dest.unlockCanvas();
+        }
     }
 
     public void handleCreatGc(final PacketReader reader) throws XError {

@@ -53,6 +53,7 @@ public class DrawingProtocol implements PacketHandler {
             Request.POLY_TEXT_8,
             Request.POLY_FILL_RECTANGLE,
             Request.SET_CLIP_RECTANGLES,
+            Request.POLY_RECTANGLE,
     };
 
     private final GraphicsManager mGraphics;
@@ -90,6 +91,9 @@ public class DrawingProtocol implements PacketHandler {
                 break;
             case Request.SET_CLIP_RECTANGLES:
                 handleSetClipRectangles(reader);
+                break;
+            case Request.POLY_RECTANGLE:
+                handlePolyRectangle(reader);
                 break;
         }
     }
@@ -224,6 +228,27 @@ public class DrawingProtocol implements PacketHandler {
             p.addRect(new RectF(r.r), Path.Direction.CW);
         }
         gContext.setClipPath(p);
+    }
+
+    private void handlePolyRectangle(PacketReader reader) throws XError {
+        XDrawable drawable = mGraphics.getDrawable(reader.readCard32());
+        GraphicsContext gContext = mGraphics.getGc(reader.readCard32());
+        Rectangle r = new Rectangle();
+        Paint p = gContext.getPaint();
+        p.setStyle(Style.STROKE);
+        synchronized (drawable) {
+            Canvas canvas = drawable.lockCanvas(gContext);
+            while (reader.getRemaining() != 0) {
+                try {
+                    r.read(reader);
+                    canvas.drawRect(r.r, p);
+                } catch (XProtoReader.ReadException e) {
+                    // Not possible here.
+                    throw new RuntimeException(e);
+                }
+            }
+            drawable.unlockCanvas();
+        }
     }
 
     public static final byte COORDINATES_ABSOLUTE = 0;
