@@ -28,6 +28,7 @@ import org.monksanctum.xand11.comm.Event;
 import org.monksanctum.xand11.comm.Event.EventInfo;
 import org.monksanctum.xand11.errors.AtomError;
 import org.monksanctum.xand11.errors.WindowError;
+import org.monksanctum.xand11.graphics.GraphicsContext;
 import org.monksanctum.xand11.graphics.XDrawable;
 import org.monksanctum.xand11.graphics.XPaintable;
 
@@ -109,18 +110,23 @@ public class XWindow implements XDrawable {
         return mClass;
     }
 
-    public Canvas lockCanvas() {
+    public Canvas lockCanvas(GraphicsContext gc) {
         // TODO: Track whether this is available.
         // TODO: Figure out a way to not back these and draw them directly into the view if possible
         if (!mDrawingBackground) {
             mCanvas.clipRect(mInnerBounds);
             mCanvas.translate(mBorderWidth, mBorderWidth);
         }
+        mCanvas.save();
+        if (gc != null) {
+            gc.init(mCanvas);
+        }
         return mCanvas;
     }
 
     @Override
     public void unlockCanvas() {
+        mCanvas.restore();
         if (mCallback != null) {
             mCallback.onContentChanged();
         }
@@ -204,7 +210,7 @@ public class XWindow implements XDrawable {
         }
     }
 
-    private void removeChildLocked(XWindow w) {
+    void removeChildLocked(XWindow w) {
         synchronized (w) {
             mChildren.remove(w);
             w.parent = null;

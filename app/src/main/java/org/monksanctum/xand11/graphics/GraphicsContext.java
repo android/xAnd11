@@ -14,9 +14,11 @@
 
 package org.monksanctum.xand11.graphics;
 
+import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Paint.Cap;
 import android.graphics.Paint.Join;
+import android.graphics.Path;
 import android.graphics.Xfermode;
 
 import org.monksanctum.xand11.errors.ValueError;
@@ -53,6 +55,7 @@ public class GraphicsContext {
     public byte arcMode;
 
     private Paint mPaint;
+    private Path p;
 
     public GraphicsContext(int id) {
         mId = id;
@@ -100,6 +103,20 @@ public class GraphicsContext {
         mPaint = applyToPaint(f != null ? f.getPaint() : new Paint());
     }
 
+    public Paint getPaint() {
+        return mPaint;
+    }
+
+    public void setClipPath(Path p) {
+        this.p = p;
+    }
+
+    public void init(Canvas c) {
+        if (p != null) {
+            c.clipPath(p);
+        }
+    }
+
     public static final byte FUNCTION_CLEAR = 0;
     public static final byte FUNCTION_AND = 1;
     public static final byte FUNCTION_AND_REVERSE = 2;
@@ -143,8 +160,4 @@ public class GraphicsContext {
 
     public static final byte ARC_MODE_CHORD = 0;
     public static final byte ARC_MODE_PIE_SLICE = 1;
-
-    public Paint getPaint() {
-        return mPaint;
-    }
 }

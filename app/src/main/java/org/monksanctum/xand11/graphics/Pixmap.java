@@ -67,7 +67,7 @@ public class Pixmap implements XDrawable, XPaintable {
     @Override
     public void draw(XDrawable drawable, Rect bounds, @Nullable GraphicsContext context) {
         synchronized (drawable) {
-            Canvas c = drawable.lockCanvas();
+            Canvas c = drawable.lockCanvas(context);
             Paint paint = context != null ? context.getPaint() : new Paint();
             Rect src = new Rect(0, 0, mBitmap.getWidth(), mBitmap.getHeight());
             if (DEBUG) Log.d(TAG, "Drawing pixmap " + bounds);
@@ -77,7 +77,7 @@ public class Pixmap implements XDrawable, XPaintable {
     }
 
     @Override
-    public Canvas lockCanvas() {
+    public Canvas lockCanvas(GraphicsContext gc) {
         return mCanvas;
     }
 

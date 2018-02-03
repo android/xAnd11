@@ -19,6 +19,7 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Path;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.util.Log;
 import android.util.Pair;
 
@@ -51,6 +52,7 @@ public class DrawingProtocol implements PacketHandler {
             Request.POLY_LINE,
             Request.POLY_TEXT_8,
             Request.POLY_FILL_RECTANGLE,
+            Request.SET_CLIP_RECTANGLES,
     };
 
     private final GraphicsManager mGraphics;
@@ -86,6 +88,9 @@ public class DrawingProtocol implements PacketHandler {
             case Request.POLY_FILL_RECTANGLE:
                 handlePolyFillRectangle(reader);
                 break;
+            case Request.SET_CLIP_RECTANGLES:
+                handleSetClipRectangles(reader);
+                break;
         }
     }
 
@@ -96,7 +101,7 @@ public class DrawingProtocol implements PacketHandler {
         Paint p = gContext.getPaint();
         p.setStyle(Style.FILL);
         synchronized (drawable) {
-            Canvas canvas = drawable.lockCanvas();
+            Canvas canvas = drawable.lockCanvas(gContext);
             while (reader.getRemaining() != 0) {
                 try {
                     r.read(reader);
@@ -115,7 +120,7 @@ public class DrawingProtocol implements PacketHandler {
         GraphicsContext gContext = mGraphics.getGc(reader.readCard32());
         int x = reader.readCard16();
         int y = reader.readCard16();
-        Canvas c = drawable.lockCanvas();
+        Canvas c = drawable.lockCanvas(gContext);
         Paint paint = gContext.getPaint();
         TextItem8 item = new TextItem8();
         while (reader.getRemaining() > 1) {
@@ -152,7 +157,7 @@ public class DrawingProtocol implements PacketHandler {
         Path p = readPath(mode, reader);
 
         synchronized (drawable) {
-            Canvas c = drawable.lockCanvas();
+            Canvas c = drawable.lockCanvas(gContext);
             if (DEBUG) Log.d(TAG, "Poly line");
             Paint paint = gContext.getPaint();
             paint.setStyle(Style.STROKE);
@@ -171,7 +176,7 @@ public class DrawingProtocol implements PacketHandler {
         Path p = readPath(mode, reader);
 
         synchronized (drawable) {
-            Canvas c = drawable.lockCanvas();
+            Canvas c = drawable.lockCanvas(gContext);
             Paint paint = new Paint(gContext.getPaint());
             paint.setStyle(Style.FILL);
             if (DEBUG) Log.d(TAG, "Filling poly");
@@ -191,7 +196,7 @@ public class DrawingProtocol implements PacketHandler {
         }
         final int N = segments.size();
         synchronized (drawable) {
-            Canvas c = drawable.lockCanvas();
+            Canvas c = drawable.lockCanvas(gContext);
             for (int i = 0; i < N; i++) {
                 Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> segment = segments.get(i);
                 Pair<Integer, Integer> start = segment.first;
@@ -201,6 +206,24 @@ public class DrawingProtocol implements PacketHandler {
             if (DEBUG) Log.d(TAG, "Poly segment");
             drawable.unlockCanvas();
         }
+    }
+
+    private void handleSetClipRectangles(PacketReader reader) throws XError {
+        GraphicsContext gContext = mGraphics.getGc(reader.readCard32());
+        int x = reader.readInt16();
+        int y = reader.readInt16();
+        Rectangle r = new Rectangle();
+        Path p = new Path();
+        while (reader.getRemaining() != 0) {
+            try {
+                r.read(reader);
+            } catch (XProtoReader.ReadException e) {
+                // Not possible here.
+                throw new RuntimeException(e);
+            }
+            p.addRect(new RectF(r.r), Path.Direction.CW);
+        }
+        gContext.setClipPath(p);
     }
 
     public static final byte COORDINATES_ABSOLUTE = 0;

@@ -34,7 +34,7 @@ public class ColorPaintable implements XPaintable {
     @Override
     public void draw(XDrawable drawable, Rect bounds, @Nullable GraphicsContext context) {
         synchronized (drawable) {
-            Canvas canvas = drawable.lockCanvas();
+            Canvas canvas = drawable.lockCanvas(context);
             Paint p = context != null ? new Paint(context.getPaint()) : new Paint();
             p.setColor(mColor);
             if (DEBUG) Log.d(TAG, "Drawing 0x" + Integer.toHexString(mColor) + " on " + bounds);

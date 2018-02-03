@@ -147,7 +147,7 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
         Bitmap bitmap = depth != 1 ? GraphicsUtils.readZBitmap(reader, width, height)
                 : GraphicsUtils.readBitmap(reader, leftPad, width, height, depth, context);
         synchronized (drawable) {
-            drawable.lockCanvas().drawBitmap(bitmap, x, y, context.getPaint());
+            drawable.lockCanvas(context).drawBitmap(bitmap, x, y, context.getPaint());
             if (DEBUG) Log.d(TAG, "Drawing bitmap " + x + " " + y + " " + bitmap.getWidth() + " "
                     + bitmap.getHeight());
             drawable.unlockCanvas();
@@ -203,7 +203,7 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
             gc.drawable = drawable;
             new BitmaskParser(reader.readCard32(), 0x400000) {
                 @Override
-                public void readValue(int mask) {
+                public void readValue(int mask) throws ValueError {
                     switch (mask) {
                         case 0x01:
                             gc.function = reader.readByte();
@@ -264,6 +264,9 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
                             break;
                         case 0x80000:
                             gc.clipMask = reader.readCard32();
+                            if (gc.clipMask != 0) {
+                                throw new ValueError(gc.clipMask);
+                            }
                             break;
                         case 0x100000:
                             gc.dashOffset = reader.readCard16();
@@ -305,7 +308,7 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
             font.getTextBounds(str, x, y, rect);
             paint.setStyle(Style.FILL);
             paint.setColor(context.background);
-            Canvas canvas = drawable.lockCanvas();
+            Canvas canvas = drawable.lockCanvas(context);
             canvas.drawRect(rect, paint);
 
             paint.setColor(context.foreground);

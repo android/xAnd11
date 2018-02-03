@@ -31,6 +31,8 @@ import org.monksanctum.xand11.errors.XError;
 import org.monksanctum.xand11.graphics.ColorPaintable;
 import org.monksanctum.xand11.windows.XWindow.Property;
 
+import static org.monksanctum.xand11.windows.XWindow.FLAG_MAPPED;
+
 public class XWindowProtocol implements Dispatcher.PacketHandler {
 
     private static final byte[] HANDLED_OP_CODES = new byte[]{
@@ -49,6 +51,7 @@ public class XWindowProtocol implements Dispatcher.PacketHandler {
             Request.DESTROY_SUBWINDOWS,
             Request.DESTROY_WINDOW,
             Request.QUERY_TREE,
+            Request.REPARENT_WINDOW,
     };
 
     private final XWindowManager mWindowManager;
@@ -111,6 +114,33 @@ public class XWindowProtocol implements Dispatcher.PacketHandler {
             case Request.QUERY_TREE:
                 handleQueryTree(reader, writer);
                 break;
+            case Request.REPARENT_WINDOW:
+                handleReparentWindow(reader);
+                break;
+        }
+    }
+
+    private void handleReparentWindow(PacketReader reader) throws XError {
+        XWindow window = mWindowManager.getWindow(reader.readCard32());
+        XWindow newParent = mWindowManager.getWindow(reader.readCard32());
+        int x = reader.readInt16();
+        int y = reader.readInt16();
+        synchronized (window) {
+            boolean mapped = (window.getVisibility() & FLAG_MAPPED) != 0;
+            if (mapped) window.requestUnmap();
+            if (window.getParent() != null) {
+                synchronized (window.getParent()) {
+                    window.getParent().removeChildLocked(window);
+                }
+            }
+            Rect bounds = window.getBounds();
+            bounds.left = x;
+            bounds.top = y;
+            window.setBounds(bounds);
+            synchronized (newParent) {
+                newParent.addChildLocked(window);
+            }
+            if (mapped) window.requestMap();
         }
     }
 

@@ -18,7 +18,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 
 public interface XDrawable {
-    Canvas lockCanvas();
+    Canvas lockCanvas(GraphicsContext gc);
     void unlockCanvas();
 
     XDrawable getParent();
