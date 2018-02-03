@@ -107,7 +107,7 @@ public class XWindowView extends ViewGroup implements WindowCallback {
             // or if way around it.
             synchronized (mWindow) {
                 Bitmap bitmap = mWindow.getBitmap();
-                canvas.drawBitmap(bitmap, mWindow.getBounds(), mWindow.getBounds(), new Paint());
+                canvas.drawBitmap(bitmap, 0, 0, new Paint());
             }
         }
     }
@@ -121,13 +121,15 @@ public class XWindowView extends ViewGroup implements WindowCallback {
 
     @Override
     public void windowOrderChanged() {
-        synchronized (mWindow) {
-            for (int i = 0; i < getChildCount(); i++) {
-                while (mWindow.getChildAtLocked(i) != ((XWindowView) getChildAt(i)).mWindow) {
-                    bringChildToFront(getChildAt(i));
+        post(() -> {
+            synchronized (mWindow) {
+                for (int i = 0; i < getChildCount() && i < mWindow.getChildCountLocked(); i++) {
+                    while (mWindow.getChildAtLocked(i) != ((XWindowView) getChildAt(i)).mWindow) {
+                        bringChildToFront(getChildAt(i));
+                    }
                 }
             }
-        }
+        });
     }
 
     @Override

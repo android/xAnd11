@@ -23,6 +23,7 @@ import android.os.IBinder;
 import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 
@@ -58,22 +59,19 @@ public class XActivity extends Activity {
         mService.getActivityManager().setTask(mWindowId, getTaskId());
         try {
             mRootWindow = mService.getWindowManager().getWindow(mWindowId);
-            if (DEBUG_WINDOW_HIERARCHY) {
-                debugWindow(mRootWindow, "");
-            }
             mRootWindow.addCallback(mPropertyCallback);
             updateTitle();
             XRootWindowView rootWindowView = new XRootWindowView(this, mRootWindow);
             rootWindowView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
                     LayoutParams.MATCH_PARENT));
             setContentView(rootWindowView);
+            if (DEBUG_WINDOW_HIERARCHY) {
+                debugWindow(mRootWindow, "");
+            }
             if (mResumed) {
-                Utils.sBgHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        synchronized (mRootWindow) {
-                            mRootWindow.notifyEnter();
-                        }
+                Utils.sBgHandler.post(() -> {
+                    synchronized (mRootWindow) {
+                        mRootWindow.notifyEnter();
                     }
                 });
             }
@@ -88,12 +86,9 @@ public class XActivity extends Activity {
         super.onResume();
         mResumed = true;
         if (mRootWindow != null) {
-            Utils.sBgHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (mRootWindow) {
-                        mRootWindow.notifyEnter();
-                    }
+            Utils.sBgHandler.post(() -> {
+                synchronized (mRootWindow) {
+                    mRootWindow.notifyEnter();
                 }
             });
         }
@@ -104,12 +99,9 @@ public class XActivity extends Activity {
         super.onPause();
         mResumed = false;
         if (mRootWindow != null) {
-            Utils.sBgHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (mRootWindow) {
-                        mRootWindow.notifyLeave();
-                    }
+            Utils.sBgHandler.post(() -> {
+                synchronized (mRootWindow) {
+                    mRootWindow.notifyLeave();
                 }
             });
         }
@@ -130,12 +122,9 @@ public class XActivity extends Activity {
     @Override
     public boolean onKeyDown(final int keyCode, KeyEvent event) {
         if (mRootWindow == null) return false;
-        Utils.sBgHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (mRootWindow) {
-                    mRootWindow.notifyKeyDown(keyCode);
-                }
+        Utils.sBgHandler.post(() -> {
+            synchronized (mRootWindow) {
+                mRootWindow.notifyKeyDown(keyCode);
             }
         });
         return true;
@@ -144,12 +133,9 @@ public class XActivity extends Activity {
     @Override
     public boolean onKeyUp(final int keyCode, KeyEvent event) {
         if (mRootWindow == null) return false;
-        Utils.sBgHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (mRootWindow) {
-                    mRootWindow.notifyKeyUp(keyCode);
-                }
+        Utils.sBgHandler.post(() -> {
+            synchronized (mRootWindow) {
+                mRootWindow.notifyKeyUp(keyCode);
             }
         });
         return true;
@@ -159,7 +145,7 @@ public class XActivity extends Activity {
         Log.d(TAG, prefix + " " + window.getBounds());
         synchronized (window) {
             for (int i = 0; i < window.getChildCountLocked(); i++) {
-                debugWindow(window.getChildAtLocked(i), " -- ");
+                debugWindow(window.getChildAtLocked(i), prefix + " -- ");
             }
         }
     }
@@ -177,12 +163,7 @@ public class XActivity extends Activity {
         @Override
         protected void onPropertyChanged(int prop) {
             if (prop == AtomManager.WM_NAME) {
-                getWindow().getDecorView().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        updateTitle();
-                    }
-                });
+                getWindow().getDecorView().post(() -> updateTitle());
             }
         }
     };

@@ -23,6 +23,7 @@ import android.util.Log;
 import android.util.SparseArray;
 
 import org.monksanctum.xand11.Client;
+import org.monksanctum.xand11.Utils;
 import org.monksanctum.xand11.atoms.AtomManager;
 import org.monksanctum.xand11.comm.Event;
 import org.monksanctum.xand11.comm.Event.EventInfo;
@@ -74,7 +75,7 @@ public class XWindow implements XDrawable {
     private final byte mClass;
     private int mId;
 
-    private Rect mBounds;
+    private Rect mBounds = new Rect();
     private int mBorderWidth;
     private XPaintable mBackground;
     private XPaintable mBorder;
@@ -113,11 +114,11 @@ public class XWindow implements XDrawable {
     public Canvas lockCanvas(GraphicsContext gc) {
         // TODO: Track whether this is available.
         // TODO: Figure out a way to not back these and draw them directly into the view if possible
+        mCanvas.save();
         if (!mDrawingBackground) {
             mCanvas.clipRect(mInnerBounds);
             mCanvas.translate(mBorderWidth, mBorderWidth);
         }
-        mCanvas.save();
         if (gc != null) {
             gc.init(mCanvas);
         }
@@ -257,23 +258,21 @@ public class XWindow implements XDrawable {
     public boolean setBorderWidth(int borderWidth) {
         if (mBorderWidth == borderWidth) return false;
         mBorderWidth = borderWidth;
-        if (mInnerBounds != null) {
-            setBounds(mInnerBounds);
-        }
+        mInnerBounds.left = mBounds.left + mBorderWidth;
+        mInnerBounds.top = mBounds.top + mBorderWidth;
+        mInnerBounds.right = mBounds.right - mBorderWidth;
+        mInnerBounds.bottom = mBounds.bottom - mBorderWidth;
+        initBackground();
         return true;
     }
 
     public boolean setBounds(Rect rect) {
-        if ((mInnerBounds.left == rect.left + mBorderWidth)
-                && (mInnerBounds.top == rect.top + mBorderWidth)
-                && (mInnerBounds.right == rect.right + mBorderWidth)
-                && (mInnerBounds.bottom == rect.bottom + mBorderWidth)) return false;
-        mInnerBounds.set(rect);
-        mBounds = new Rect(mInnerBounds.left, mInnerBounds.top,
-                mInnerBounds.right + 2 * mBorderWidth, mInnerBounds.bottom + 2 * mBorderWidth);
-        mInnerBounds.offset(mBorderWidth, mBorderWidth);
-        //if (mBounds.bottom == mBounds.top) mBounds.bottom = mBounds.top + 1;
-        //if (mBounds.right == mBounds.left) mBounds.right = mBounds.left + 1;
+        if (mBounds.equals(rect)) return false;
+        mBounds.set(rect);
+        mInnerBounds.left = mBounds.left + mBorderWidth;
+        mInnerBounds.top = mBounds.top + mBorderWidth;
+        mInnerBounds.right = mBounds.right - mBorderWidth;
+        mInnerBounds.bottom = mBounds.bottom - mBorderWidth;
         if (mBitmap != null && (mBounds.width() != mBitmap.getWidth()
                 || mBounds.height() != mBitmap.getHeight())) {
             notifySizeChanged();
@@ -296,13 +295,11 @@ public class XWindow implements XDrawable {
         if (mCallback != null) {
             mCallback.onSizeChanged();
         }
-        if (mBitmap != null) {
-            // TODO: Need to handle copying the content based on gravity.
-            mBitmap = Bitmap.createBitmap(Math.max(mBounds.width(), 1),
-                    Math.max(mBounds.height(), 1), Config.ARGB_8888);
-            mCanvas = new Canvas(mBitmap);
-            initBackground();
-        }
+        // TODO: Need to handle copying the content based on gravity.
+        mBitmap = Bitmap.createBitmap(Math.max(mBounds.width(), 1),
+                Math.max(mBounds.height(), 1), Config.ARGB_8888);
+        mCanvas = new Canvas(mBitmap);
+        initBackground();
     }
 
     public void setBackground(XPaintable background) {
@@ -490,9 +487,11 @@ public class XWindow implements XDrawable {
             sendEvent(info, EVENT_MASK_STRUCTURE_NOTIFY);
         }
         if (parent != null) {
-            synchronized (parent) {
-                parent.notifyConfigureWindow(this);
-            }
+            Utils.sBgHandler.post(() -> {
+                synchronized (parent) {
+                    parent.notifyConfigureWindow(this);
+                }
+            });
         }
     }
 

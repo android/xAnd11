@@ -435,6 +435,8 @@ public class XWindowProtocol implements Dispatcher.PacketHandler {
         int windowId = reader.readCard32();
         XWindow window = mWindowManager.getWindow(windowId);
         int mask = reader.readCard16();
+        Runnable r = null;
+        boolean change = false;
         reader.readPadding(2);
         synchronized (window) {
             Rect bounds = window.getBounds();
@@ -452,7 +454,7 @@ public class XWindowProtocol implements Dispatcher.PacketHandler {
                 int height = reader.readCard32();
                 bounds.bottom = height + bounds.top;
             }
-            boolean change = window.setBounds(bounds);
+            change = window.setBounds(bounds);
             if ((mask & 0x10) != 0) {
                 change |= window.setBorderWidth(reader.readCard32());
             }
@@ -465,19 +467,34 @@ public class XWindowProtocol implements Dispatcher.PacketHandler {
                 XWindow parent = window.getParent();
                 if (siblingId != 0) {
                     XWindow sibling = mWindowManager.getWindow(siblingId);
-                    synchronized (parent) {
-                        parent.stackWindowLocked(window, sibling, stackMode);
-                    }
+                    r = () -> {
+                        synchronized (parent) {
+                            try {
+                                parent.stackWindowLocked(window, sibling, stackMode);
+                            } catch (WindowError windowError) {
+                                windowError.printStackTrace();
+                            }
+                        }
+                    };
                 } else {
-                    synchronized (parent) {
-                        parent.stackWindowLocked(window, stackMode);
-                    }
+                    r = () -> {
+                        synchronized (parent) {
+                            try {
+                                parent.stackWindowLocked(window, stackMode);
+                            } catch (WindowError windowError) {
+                                windowError.printStackTrace();
+                            }
+                        }
+                    };
                 }
                 change = true;
             }
-            if (change) {
-                window.notifyConfigureWindow();
-            }
+        }
+        if (r != null) {
+            r.run();
+        }
+        if (change) {
+            window.notifyConfigureWindow();
         }
     }
 

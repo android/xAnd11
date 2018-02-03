@@ -41,6 +41,7 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
 
     private static final byte[] HANDLED_OPS = {
             Request.CREATE_GC,
+            Request.CHANGE_GC,
             Request.FREE_GC,
             Request.CREATE_PIXMAP,
             Request.FREE_PIXMAP,
@@ -70,7 +71,10 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
             throws XError {
         switch (reader.getMajorOpCode()) {
             case Request.CREATE_GC:
-                handleCreatGc(reader);
+                handleCreateGc(reader);
+                break;
+            case Request.CHANGE_GC:
+                handleChangeGc(reader);
                 break;
             case Request.FREE_GC:
                 handleFreeGc(reader);
@@ -230,97 +234,112 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
         }
     }
 
-    public void handleCreatGc(final PacketReader reader) throws XError {
+    public void handleChangeGc(final PacketReader reader) throws XError {
+        final GraphicsContext gc = mManager.getGc(reader.readCard32());
+        synchronized (gc) {
+            parseGc(reader, gc);
+            gc.createPaint(mFontManager);
+            // Eat up the extra bytes so we don't get a warning.
+            // This is expected to have some arbitrary padding.
+            reader.readPadding(reader.getRemaining());
+        }
+    }
+
+    public void handleCreateGc(final PacketReader reader) throws XError {
         // TODO (SPEC)
         int id = reader.readCard32();
         final GraphicsContext gc = mManager.createGc(id);
         synchronized (gc) {
             int drawable = reader.readCard32();
             gc.drawable = drawable;
-            new BitmaskParser(reader.readCard32(), 0x400000) {
-                @Override
-                public void readValue(int mask) throws ValueError {
-                    switch (mask) {
-                        case 0x01:
-                            gc.function = reader.readByte();
-                            break;
-                        case 0x02:
-                            gc.planeMask = reader.readCard32();
-                            break;
-                        case 0x04:
-                            gc.foreground = reader.readCard32();
-                            break;
-                        case 0x08:
-                            gc.background = reader.readCard32();
-                            break;
-                        case 0x10:
-                            gc.lineWidth = reader.readCard16();
-                            break;
-                        case 0x20:
-                            gc.lineStyle = reader.readByte();
-                            break;
-                        case 0x40:
-                            gc.capStyle = reader.readByte();
-                            break;
-                        case 0x80:
-                            gc.joinStyle = reader.readByte();
-                            break;
-                        case 0x100:
-                            gc.fillStyle = reader.readByte();
-                            break;
-                        case 0x200:
-                            gc.fillRule = reader.readByte();
-                            break;
-                        case 0x400:
-                            gc.tile = reader.readCard32();
-                            break;
-                        case 0x800:
-                            gc.stipple = reader.readCard32();
-                            break;
-                        case 0x1000:
-                            gc.tileStippleX = reader.readCard16();
-                            break;
-                        case 0x2000:
-                            gc.tileStippleY = reader.readCard16();
-                            break;
-                        case 0x4000:
-                            gc.font = reader.readCard32();
-                            break;
-                        case 0x8000:
-                            gc.subwindowMode = reader.readByte();
-                            break;
-                        case 0x10000:
-                            gc.graphicsExposures = reader.readByte() != 0;
-                            break;
-                        case 0x20000:
-                            gc.clipX = reader.readCard16();
-                            break;
-                        case 0x40000:
-                            gc.clipY = reader.readCard16();
-                            break;
-                        case 0x80000:
-                            gc.clipMask = reader.readCard32();
-                            if (gc.clipMask != 0) {
-                                throw new ValueError(gc.clipMask);
-                            }
-                            break;
-                        case 0x100000:
-                            gc.dashOffset = reader.readCard16();
-                            break;
-                        case 0x200000:
-                            gc.dashes = reader.readByte();
-                            break;
-                        case 0x400000:
-                            gc.arcMode = reader.readByte();
-                            break;
-                    }
-                }
-            };
+            parseGc(reader, gc);
             gc.createPaint(mFontManager);
             // Eat up the extra bytes so we don't get a warning.
             // This is expected to have some arbitrary padding.
             reader.readPadding(reader.getRemaining());
         }
+    }
+
+    private void parseGc(PacketReader reader, GraphicsContext gc) throws XError {
+        new BitmaskParser(reader.readCard32(), 0x400000) {
+            @Override
+            public void readValue(int mask) throws ValueError {
+                switch (mask) {
+                    case 0x01:
+                        gc.function = reader.readByte();
+                        break;
+                    case 0x02:
+                        gc.planeMask = reader.readCard32();
+                        break;
+                    case 0x04:
+                        gc.foreground = reader.readCard32();
+                        break;
+                    case 0x08:
+                        gc.background = reader.readCard32();
+                        break;
+                    case 0x10:
+                        gc.lineWidth = reader.readCard16();
+                        break;
+                    case 0x20:
+                        gc.lineStyle = reader.readByte();
+                        break;
+                    case 0x40:
+                        gc.capStyle = reader.readByte();
+                        break;
+                    case 0x80:
+                        gc.joinStyle = reader.readByte();
+                        break;
+                    case 0x100:
+                        gc.fillStyle = reader.readByte();
+                        break;
+                    case 0x200:
+                        gc.fillRule = reader.readByte();
+                        break;
+                    case 0x400:
+                        gc.tile = reader.readCard32();
+                        break;
+                    case 0x800:
+                        gc.stipple = reader.readCard32();
+                        break;
+                    case 0x1000:
+                        gc.tileStippleX = reader.readCard16();
+                        break;
+                    case 0x2000:
+                        gc.tileStippleY = reader.readCard16();
+                        break;
+                    case 0x4000:
+                        gc.font = reader.readCard32();
+                        break;
+                    case 0x8000:
+                        gc.subwindowMode = reader.readByte();
+                        break;
+                    case 0x10000:
+                        gc.graphicsExposures = reader.readByte() != 0;
+                        break;
+                    case 0x20000:
+                        gc.clipX = reader.readCard16();
+                        break;
+                    case 0x40000:
+                        gc.clipY = reader.readCard16();
+                        break;
+                    case 0x80000:
+                        gc.clipMask = reader.readCard32();
+                        if (gc.clipMask != 0) {
+                            throw new ValueError(gc.clipMask);
+                        }
+                        break;
+                    case 0x100000:
+                        gc.dashOffset = reader.readCard16();
+                        break;
+                    case 0x200000:
+                        gc.dashes = reader.readByte();
+                        break;
+                    case 0x400000:
+                        gc.arcMode = reader.readByte();
+                        break;
+                }
+            }
+        };
     }
 
     private void handleFreeGc(PacketReader reader) {

@@ -23,8 +23,11 @@ import org.monksanctum.xand11.windows.XWindow;
 
 public class XRootWindowView extends XWindowView {
 
+    private static final boolean RESIZE_TO_VIEW = false;
+
     public XRootWindowView(Context context, XWindow window) {
         super(context, window);
+        setBackgroundColor(0xffffffff);
     }
 
     @Override
@@ -44,12 +47,9 @@ public class XRootWindowView extends XWindowView {
 
     @Override
     public boolean onKeyDown(final int keyCode, KeyEvent event) {
-        Utils.sBgHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (mWindow) {
-                    mWindow.notifyKeyDown(keyCode);
-                }
+        Utils.sBgHandler.post(() -> {
+            synchronized (mWindow) {
+                mWindow.notifyKeyDown(keyCode);
             }
         });
         return true;
@@ -57,12 +57,9 @@ public class XRootWindowView extends XWindowView {
 
     @Override
     public boolean onKeyUp(final int keyCode, KeyEvent event) {
-        Utils.sBgHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (mWindow) {
-                    mWindow.notifyKeyUp(keyCode);
-                }
+        Utils.sBgHandler.post(() -> {
+            synchronized (mWindow) {
+                mWindow.notifyKeyUp(keyCode);
             }
         });
         return true;
@@ -72,17 +69,14 @@ public class XRootWindowView extends XWindowView {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int width = MeasureSpec.getSize(widthMeasureSpec);
         int height = MeasureSpec.getSize(heightMeasureSpec);
-        Rect bounds = mWindow.getBounds();
-        int border = mWindow.getBorderWidth();
-        if (bounds.right != width || bounds.bottom != height || bounds.left != 0 || bounds
-                .right != 0) {
-            if (mWindow.setBounds(new Rect(0, 0, width - 2 * border, height - 2 * border))) {
-                Utils.sBgHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        mWindow.notifyConfigureWindow();
-                    }
-                });
+        if (RESIZE_TO_VIEW) {
+            Rect bounds = mWindow.getBounds();
+            int border = mWindow.getBorderWidth();
+            if (bounds.right != width || bounds.bottom != height || bounds.left != 0 || bounds
+                    .right != 0) {
+                if (mWindow.setBounds(new Rect(0, 0, width - 2 * border, height - 2 * border))) {
+                    Utils.sBgHandler.post(() -> mWindow.notifyConfigureWindow());
+                }
             }
         }
         setMeasuredDimension(width, height);
