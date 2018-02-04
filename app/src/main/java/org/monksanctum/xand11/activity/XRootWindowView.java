@@ -23,7 +23,7 @@ import org.monksanctum.xand11.windows.XWindow;
 
 public class XRootWindowView extends XWindowView {
 
-    private static final boolean RESIZE_TO_VIEW = false;
+    private static final boolean RESIZE_TO_VIEW = true;
 
     public XRootWindowView(Context context, XWindow window) {
         super(context, window);
@@ -74,10 +74,13 @@ public class XRootWindowView extends XWindowView {
             int border = mWindow.getBorderWidth();
             if (bounds.right != width || bounds.bottom != height || bounds.left != 0 || bounds
                     .right != 0) {
-                if (mWindow.setBounds(new Rect(0, 0, width - 2 * border, height - 2 * border))) {
+                if (mWindow.setBounds(new Rect(0, 0, width, height))) {
                     Utils.sBgHandler.post(() -> mWindow.notifyConfigureWindow());
                 }
             }
+        } else {
+            width = mWindow.getBounds().width();
+            height = mWindow.getBounds().height();
         }
         setMeasuredDimension(width, height);
     }

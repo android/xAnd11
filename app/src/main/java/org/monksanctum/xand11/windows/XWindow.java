@@ -282,7 +282,7 @@ public class XWindow implements XDrawable {
     }
 
     public Rect getBounds() {
-        return new Rect(mInnerBounds);
+        return new Rect(mBounds);
     }
 
     private void notifyLocationChanged() {

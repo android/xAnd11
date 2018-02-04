@@ -134,8 +134,12 @@ public class XWindowProtocol implements Dispatcher.PacketHandler {
                 }
             }
             Rect bounds = window.getBounds();
+            int width = bounds.width();
+            int height = bounds.height();
             bounds.left = x;
             bounds.top = y;
+            bounds.right = x + width;
+            bounds.bottom = y + height;
             window.setBounds(bounds);
             synchronized (newParent) {
                 newParent.addChildLocked(window);
@@ -440,23 +444,34 @@ public class XWindowProtocol implements Dispatcher.PacketHandler {
         reader.readPadding(2);
         synchronized (window) {
             Rect bounds = window.getBounds();
+            int beforeWidth = bounds.width();
+            int beforeHeight = bounds.height();
             if ((mask & 0x01) != 0) {
-                bounds.left = reader.readCard32();
+                bounds.left = reader.readInt16();
+                reader.readPadding(2);
             }
             if ((mask & 0x02) != 0) {
-                bounds.top = reader.readCard32();
+                bounds.top = reader.readInt16();
+                reader.readPadding(2);
             }
             if ((mask & 0x04) != 0) {
-                int width = reader.readCard32();
+                int width = reader.readCard16();
+                reader.readPadding(2);
                 bounds.right = width + bounds.left;
+            } else {
+                bounds.right = beforeWidth + bounds.left;
             }
             if ((mask & 0x08) != 0) {
-                int height = reader.readCard32();
+                int height = reader.readCard16();
+                reader.readPadding(2);
                 bounds.bottom = height + bounds.top;
+            } else {
+                bounds.bottom = beforeHeight + bounds.top;
             }
             change = window.setBounds(bounds);
             if ((mask & 0x10) != 0) {
-                change |= window.setBorderWidth(reader.readCard32());
+                change |= window.setBorderWidth(reader.readCard16());
+                reader.readPadding(2);
             }
             if ((mask & 0x40) != 0) {
                 int siblingId = 0;
