@@ -66,7 +66,9 @@ public class XActivity extends Activity {
                     LayoutParams.MATCH_PARENT));
             setContentView(rootWindowView);
             if (DEBUG_WINDOW_HIERARCHY) {
-                debugWindow(mRootWindow, "");
+                rootWindowView.postDelayed(() -> {
+                    debugWindow(mRootWindow, "");
+                }, 3000);
             }
             if (mResumed) {
                 Utils.sBgHandler.post(() -> {
@@ -142,7 +144,9 @@ public class XActivity extends Activity {
     }
 
     private void debugWindow(XWindow window, String prefix) {
-        Log.d(TAG, prefix + " " + window.getBounds() + " "+ window.getBorderWidth() + " " + window.getBorder() + " " + window.getBackground() + " " + window.getInnerBounds());
+        Log.d(TAG, prefix + " " + window.getBounds() + " "+ window.getBorderWidth() + " "
+                + window.getBorder() + " " + window.getBackground() + " " + window.getInnerBounds()
+                + " " + Integer.toHexString(window.getVisibility()));
         synchronized (window) {
             for (int i = 0; i < window.getChildCountLocked(); i++) {
                 debugWindow(window.getChildAtLocked(i), prefix + " -- ");

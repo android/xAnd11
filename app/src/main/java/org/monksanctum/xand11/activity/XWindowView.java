@@ -28,6 +28,7 @@ import org.monksanctum.xand11.windows.XWindow;
 import org.monksanctum.xand11.windows.XWindow.WindowCallback;
 
 import static org.monksanctum.xand11.Time.t;
+import static org.monksanctum.xand11.windows.XWindow.FLAG_MAPPED;
 
 public class XWindowView extends ViewGroup implements WindowCallback {
 
@@ -39,7 +40,10 @@ public class XWindowView extends ViewGroup implements WindowCallback {
         mWindow = window;
         synchronized (mWindow) {
             for (int i = 0; i < mWindow.getChildCountLocked(); i++) {
-                addView(new XWindowView(context, mWindow.getChildAtLocked(i)));
+                XWindow child = mWindow.getChildAtLocked(i);
+                if ((child.getVisibility() & FLAG_MAPPED) != 0) {
+                    addView(new XWindowView(context, child));
+                }
             }
         }
         mWindow.setWindowCallback(this);
@@ -148,7 +152,7 @@ public class XWindowView extends ViewGroup implements WindowCallback {
     @Override
     public void onChildMappingChanged(XWindow child) {
         post(() -> {
-            if ((child.getVisibility() & XWindow.FLAG_MAPPED) != 0) {
+            if ((child.getVisibility() & FLAG_MAPPED) != 0) {
                 addView(new XWindowView(getContext(), child));
             } else {
                 for (int i = 0; i <= getChildCount(); i++) {
