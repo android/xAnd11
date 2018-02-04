@@ -23,7 +23,7 @@ import org.monksanctum.xand11.windows.XWindow;
 
 public class XRootWindowView extends XWindowView {
 
-    private static final boolean RESIZE_TO_VIEW = true;
+    private static final boolean RESIZE_TO_VIEW = false;
 
     public XRootWindowView(Context context, XWindow window) {
         super(context, window);

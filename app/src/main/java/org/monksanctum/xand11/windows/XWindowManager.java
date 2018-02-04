@@ -21,6 +21,7 @@ import org.monksanctum.xand11.XServerInfo;
 import org.monksanctum.xand11.XService;
 import org.monksanctum.xand11.activity.XActivityManager;
 import org.monksanctum.xand11.errors.WindowError;
+import org.monksanctum.xand11.graphics.ColorPaintable;
 import org.monksanctum.xand11.graphics.GraphicsManager;
 import org.monksanctum.xand11.input.XInputManager;
 
@@ -42,6 +43,7 @@ public class XWindowManager {
         mGraphicsManager = graphicsManager;
         mInputManager = inputManager;
         mRootWindow = createWindow(3, getSize(), getSize(), XWindow.INPUT_OUTPUT);
+        mRootWindow.setBorder(new ColorPaintable(0xff000000));
         mRootWindow.setWindowCallback(new RootWindowCallback(activityManager));
     }
 
