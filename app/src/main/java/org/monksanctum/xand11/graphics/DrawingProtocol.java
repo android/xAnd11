@@ -25,6 +25,7 @@ import android.util.Pair;
 
 import org.monksanctum.xand11.Client;
 import org.monksanctum.xand11.Dispatcher.PacketHandler;
+import org.monksanctum.xand11.XService;
 import org.monksanctum.xand11.comm.PacketReader;
 import org.monksanctum.xand11.comm.PacketWriter;
 import org.monksanctum.xand11.comm.Request;
@@ -46,6 +47,8 @@ public class DrawingProtocol implements PacketHandler {
 
     private static final String TAG = "DrawingProtocol";
 
+    public static final boolean DEBUG = XService.DRAWING_DEBUG;
+
     private static final byte[] HANDLED_OPS = {
             Request.POLY_SEGMENT,
             Request.FILL_POLY,
@@ -54,6 +57,7 @@ public class DrawingProtocol implements PacketHandler {
             Request.POLY_FILL_RECTANGLE,
             Request.SET_CLIP_RECTANGLES,
             Request.POLY_RECTANGLE,
+            Request.IMAGE_TEXT_16,
     };
 
     private final GraphicsManager mGraphics;
@@ -95,6 +99,36 @@ public class DrawingProtocol implements PacketHandler {
             case Request.POLY_RECTANGLE:
                 handlePolyRectangle(reader);
                 break;
+            case Request.IMAGE_TEXT_16:
+                handleImageText16(reader, writer);
+                break;
+        }
+    }
+
+    private void handleImageText16(PacketReader reader, PacketWriter writer) throws XError {
+        int strLen = reader.getMinorOpCode();
+        int drawableId = reader.readCard32();
+        int gcontextId = reader.readCard32();
+        int x = reader.readCard16();
+        int y = reader.readCard16();
+        String str = reader.readPaddedString16(strLen);
+        GraphicsContext context = mGraphics.getGc(gcontextId);
+        XDrawable drawable = mGraphics.getDrawable(drawableId);
+        synchronized (drawable) {
+            Font font = mFontManager.getFont(context.font);
+            Paint paint = font.getPaint();
+            Rect rect = new Rect();
+            font.getTextBounds(str, x, y, rect);
+            paint.setStyle(Style.FILL);
+            paint.setColor(context.background);
+            Canvas canvas = drawable.lockCanvas(context);
+            canvas.drawRect(rect, paint);
+
+            paint.setColor(context.foreground);
+            canvas.drawText(str, x, y, paint);
+            if (DEBUG) Log.d(TAG, "Drawing text " + x + " " + y + " \"" + str + "\" " +
+                    Integer.toHexString(context.foreground));
+            drawable.unlockCanvas();
         }
     }
 
@@ -109,6 +143,7 @@ public class DrawingProtocol implements PacketHandler {
             while (reader.getRemaining() != 0) {
                 try {
                     r.read(reader);
+                    if (DEBUG) Log.d(TAG, "Poly fill rectangle " + r.r);
                     canvas.drawRect(r.r, p);
                 } catch (XProtoReader.ReadException e) {
                     // Not possible here.
@@ -143,6 +178,7 @@ public class DrawingProtocol implements PacketHandler {
                 Font.getTextBounds(item.mValue, paint, x, y, mBounds);
 
                 paint.setColor(gContext.foreground);
+                if (DEBUG) Log.d(TAG, "Poly text " + item.mValue + " " + x + " " + y);
                 c.drawText(item.mValue, x, y, paint);
                 x += mBounds.width();
             }
@@ -162,7 +198,7 @@ public class DrawingProtocol implements PacketHandler {
 
         synchronized (drawable) {
             Canvas c = drawable.lockCanvas(gContext);
-            if (DEBUG) Log.d(TAG, "Poly line");
+            if (DEBUG) Log.d(TAG, "Poly line " + p);
             Paint paint = gContext.getPaint();
             paint.setStyle(Style.STROKE);
             c.drawPath(p, paint);
@@ -183,7 +219,7 @@ public class DrawingProtocol implements PacketHandler {
             Canvas c = drawable.lockCanvas(gContext);
             Paint paint = new Paint(gContext.getPaint());
             paint.setStyle(Style.FILL);
-            if (DEBUG) Log.d(TAG, "Filling poly");
+            if (DEBUG) Log.d(TAG, "Filling poly " + p);
             c.drawPath(p, paint);
             drawable.unlockCanvas();
         }
@@ -225,6 +261,7 @@ public class DrawingProtocol implements PacketHandler {
                 // Not possible here.
                 throw new RuntimeException(e);
             }
+            if (DEBUG) Log.d(TAG, "Set clip rectangles " + r.r);
             p.addRect(new RectF(r.r), Path.Direction.CW);
         }
         gContext.setClipPath(p);
@@ -241,6 +278,7 @@ public class DrawingProtocol implements PacketHandler {
             while (reader.getRemaining() != 0) {
                 try {
                     r.read(reader);
+                    if (DEBUG) Log.d(TAG, "Poly rectangle " + r.r);
                     canvas.drawRect(r.r, p);
                 } catch (XProtoReader.ReadException e) {
                     // Not possible here.

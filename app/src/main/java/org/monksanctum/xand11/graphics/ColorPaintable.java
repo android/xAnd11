@@ -37,9 +37,15 @@ public class ColorPaintable implements XPaintable {
             Canvas canvas = drawable.lockCanvas(context);
             Paint p = context != null ? new Paint(context.getPaint()) : new Paint();
             p.setColor(mColor);
+            p.setStyle(Paint.Style.FILL);
             if (DEBUG) Log.d(TAG, "Drawing 0x" + Integer.toHexString(mColor) + " on " + bounds);
             canvas.drawRect(bounds, p);
             drawable.unlockCanvas();
         }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("ColorPaintable(#%x)", mColor);
     }
 }

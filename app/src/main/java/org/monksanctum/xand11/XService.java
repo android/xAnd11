@@ -64,6 +64,7 @@ public class XService extends Service {
     public static final boolean GRAPHICS_DEBUG = false;
     public static final boolean FONT_DEBUG = false;
     public static final boolean PROFILE_DEBUG = false;
+    public static final boolean DRAWING_DEBUG = false;
 
     public static final int MAJOR_VERSION = 11;
     public static final int MINOR_VERSION = 0;

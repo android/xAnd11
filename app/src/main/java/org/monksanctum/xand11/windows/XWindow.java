@@ -66,6 +66,18 @@ public class XWindow implements XDrawable {
     public static final byte STACK_BOTTOM_IF = 0x03;
     public static final byte STACK_OPPOSITE = 0x04;
 
+    public static final byte GRAVITY_UNMAP = 0x00;
+    public static final byte GRAVITY_NORTHWEST = 0x01;
+    public static final byte GRAVITY_NORTH = 0x02;
+    public static final byte GRAVITY_NORTHEAST = 0x03;
+    public static final byte GRAVITY_WEST = 0x04;
+    public static final byte GRAVITY_CENTER = 0x05;
+    public static final byte GRAVITY_EAST = 0x06;
+    public static final byte GRAVITY_SOUTHWEST = 0x07;
+    public static final byte GRAVITY_SOUTH = 0x08;
+    public static final byte GRAVITY_SOUTHEAST = 0x09;
+    public static final byte GRAVITY_STATIC = 0x0A;
+
     private final SparseArray<Property> mProperties = new SparseArray<>();
     private final List<XWindow> mChildren = new ArrayList<>();
     private final List<EventCallback> mCallbacks = new ArrayList<>();
@@ -117,7 +129,7 @@ public class XWindow implements XDrawable {
         mCanvas.save();
         if (!mDrawingBackground) {
             mCanvas.clipRect(mInnerBounds);
-            mCanvas.translate(mBorderWidth, mBorderWidth);
+            //mCanvas.translate(mBorderWidth, mBorderWidth);
         }
         if (gc != null) {
             gc.init(mCanvas);
@@ -140,12 +152,12 @@ public class XWindow implements XDrawable {
 
     @Override
     public int getX() {
-        return mInnerBounds.left;
+        return mBounds.left;
     }
 
     @Override
     public int getY() {
-        return mInnerBounds.top;
+        return mBounds.top;
     }
 
     @Override
@@ -155,12 +167,12 @@ public class XWindow implements XDrawable {
 
     @Override
     public int getWidth() {
-        return mInnerBounds.width();
+        return mBounds.width();
     }
 
     @Override
     public int getHeight() {
-        return mInnerBounds.height();
+        return mBounds.height();
     }
 
     public Property getPropertyLocked(int atom, boolean delete) {
@@ -258,10 +270,10 @@ public class XWindow implements XDrawable {
     public boolean setBorderWidth(int borderWidth) {
         if (mBorderWidth == borderWidth) return false;
         mBorderWidth = borderWidth;
-        mInnerBounds.left = mBounds.left + mBorderWidth;
-        mInnerBounds.top = mBounds.top + mBorderWidth;
-        mInnerBounds.right = mBounds.right - mBorderWidth;
-        mInnerBounds.bottom = mBounds.bottom - mBorderWidth;
+        mInnerBounds.left = mBorderWidth;
+        mInnerBounds.top = mBorderWidth;
+        mInnerBounds.right = mBounds.width() - mBorderWidth;
+        mInnerBounds.bottom = mBounds.height() - mBorderWidth;
         initBackground();
         return true;
     }
@@ -269,10 +281,10 @@ public class XWindow implements XDrawable {
     public boolean setBounds(Rect rect) {
         if (mBounds.equals(rect)) return false;
         mBounds.set(rect);
-        mInnerBounds.left = mBounds.left + mBorderWidth;
-        mInnerBounds.top = mBounds.top + mBorderWidth;
-        mInnerBounds.right = mBounds.right - mBorderWidth;
-        mInnerBounds.bottom = mBounds.bottom - mBorderWidth;
+        mInnerBounds.left = mBorderWidth;
+        mInnerBounds.top = mBorderWidth;
+        mInnerBounds.right = mBounds.width() - mBorderWidth;
+        mInnerBounds.bottom = mBounds.height() - mBorderWidth;
         if (mBitmap != null && (mBounds.width() != mBitmap.getWidth()
                 || mBounds.height() != mBitmap.getHeight())) {
             notifySizeChanged();
@@ -295,23 +307,72 @@ public class XWindow implements XDrawable {
         if (mCallback != null) {
             mCallback.onSizeChanged();
         }
+        Bitmap oldBitmap = mBitmap;
         // TODO: Need to handle copying the content based on gravity.
         mBitmap = Bitmap.createBitmap(Math.max(mBounds.width(), 1),
                 Math.max(mBounds.height(), 1), Config.ARGB_8888);
         mCanvas = new Canvas(mBitmap);
         initBackground();
+        Paint p = new Paint();
+        switch (mWinGravity) {
+            case GRAVITY_UNMAP:
+                requestUnmap();
+                break;
+            case GRAVITY_NORTHWEST:
+                mCanvas.drawBitmap(oldBitmap, 0, 0, p);
+                break;
+            case GRAVITY_NORTH:
+                mCanvas.drawBitmap(oldBitmap, (mBitmap.getWidth() - oldBitmap.getWidth()) / 2,
+                        0, p);
+                break;
+            case GRAVITY_NORTHEAST:
+                mCanvas.drawBitmap(oldBitmap, mBitmap.getWidth() - oldBitmap.getWidth(), 0, p);
+                break;
+            case GRAVITY_WEST:
+                mCanvas.drawBitmap(oldBitmap, 0, (mBitmap.getHeight() - oldBitmap.getHeight()) / 2,
+                        p);
+                break;
+            case GRAVITY_CENTER:
+                mCanvas.drawBitmap(oldBitmap, (mBitmap.getWidth() - oldBitmap.getWidth()) / 2,
+                        (mBitmap.getHeight() - oldBitmap.getHeight()) / 2, p);
+                break;
+            case GRAVITY_EAST:
+                mCanvas.drawBitmap(oldBitmap, mBitmap.getWidth() - oldBitmap.getWidth(),
+                        (mBitmap.getHeight() - oldBitmap.getHeight()) / 2, p);
+                break;
+            case GRAVITY_SOUTHWEST:
+                mCanvas.drawBitmap(oldBitmap, 0, mBitmap.getHeight() - oldBitmap.getHeight(),
+                        p);
+                break;
+            case GRAVITY_SOUTH:
+                mCanvas.drawBitmap(oldBitmap, (mBitmap.getWidth() - oldBitmap.getWidth()) / 2,
+                        mBitmap.getHeight() - oldBitmap.getHeight(), p);
+                break;
+            case GRAVITY_SOUTHEAST:
+                mCanvas.drawBitmap(oldBitmap, mBitmap.getWidth() - oldBitmap.getWidth(),
+                        mBitmap.getHeight() - oldBitmap.getHeight(), p);
+                break;
+            case GRAVITY_STATIC:
+                throw new RuntimeException("Static gravity unsupported");
+        }
     }
 
     public void setBackground(XPaintable background) {
         mBackground = background;
+        initBackground();
     }
 
     public void setBackgroundParent() {
-        // TODO: Generate custom XPaintable here.
+        if (parent == null) {
+            throw new RuntimeException("Unsupported parent");
+        } else {
+            setBackground(parent.getBackground());
+        }
     }
 
     public void setBorder(XPaintable border) {
         mBorder = border;
+        initBackground();
     }
 
     public void initBackground() {
@@ -319,13 +380,16 @@ public class XWindow implements XDrawable {
             mBitmap = Bitmap.createBitmap(mBounds.width(), mBounds.height(), Config.ARGB_8888);
             mCanvas = new Canvas(mBitmap);
         }
-        if (mBorder != null) {
+        Rect r = new Rect(0, 0, mBounds.width(), mBounds.height());
+        synchronized (this) {
             mDrawingBackground = true;
-            mBorder.draw(this, mBounds, null);
+            if (mBorder != null) {
+                mBorder.draw(this, r, null);
+            }
             mDrawingBackground = false;
-        }
-        if (mBackground != null) {
-            mBackground.draw(this, mInnerBounds, null);
+            if (mBackground != null) {
+                mBackground.draw(this, r, null);
+            }
         }
     }
 
@@ -712,6 +776,10 @@ public class XWindow implements XDrawable {
         Canvas c = new Canvas(bitmap);
         c.drawBitmap(mBitmap, new Rect(x, y, width, height), new Rect(0, 0, width, height),
                 new Paint());
+    }
+
+    public Rect getInnerBounds() {
+        return mInnerBounds;
     }
 
     public interface EventCallback {

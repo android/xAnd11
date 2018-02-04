@@ -142,7 +142,7 @@ public class XActivity extends Activity {
     }
 
     private void debugWindow(XWindow window, String prefix) {
-        Log.d(TAG, prefix + " " + window.getBounds());
+        Log.d(TAG, prefix + " " + window.getBounds() + " "+ window.getBorderWidth() + " " + window.getBorder() + " " + window.getBackground() + " " + window.getInnerBounds());
         synchronized (window) {
             for (int i = 0; i < window.getChildCountLocked(); i++) {
                 debugWindow(window.getChildAtLocked(i), prefix + " -- ");

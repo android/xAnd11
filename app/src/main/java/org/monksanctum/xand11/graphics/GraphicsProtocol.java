@@ -48,7 +48,6 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
             Request.PUT_IMAGE,
             Request.GET_IMAGE,
             Request.GET_GEOMETRY,
-            Request.IMAGE_TEXT_16,
             Request.QUERY_BEST_SIZE,
             Request.COPY_PLANE,
     };
@@ -93,9 +92,6 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
                 break;
             case Request.GET_GEOMETRY:
                 handleGetGeometry(reader, writer);
-                break;
-            case Request.IMAGE_TEXT_16:
-                handleImageText16(reader, writer);
                 break;
             case Request.QUERY_BEST_SIZE:
                 handleRequestBestSize(reader, writer);
@@ -345,33 +341,6 @@ public class GraphicsProtocol implements Dispatcher.PacketHandler {
     private void handleFreeGc(PacketReader reader) {
         int id = reader.readCard32();
         mManager.freeGc(id);
-    }
-
-    private void handleImageText16(PacketReader reader, PacketWriter writer) throws XError {
-        int strLen = reader.getMinorOpCode();
-        int drawableId = reader.readCard32();
-        int gcontextId = reader.readCard32();
-        int x = reader.readCard16();
-        int y = reader.readCard16();
-        String str = reader.readPaddedString16(strLen);
-        GraphicsContext context = mManager.getGc(gcontextId);
-        XDrawable drawable = mManager.getDrawable(drawableId);
-        synchronized (drawable) {
-            Font font = mFontManager.getFont(context.font);
-            Paint paint = font.getPaint();
-            Rect rect = new Rect();
-            font.getTextBounds(str, x, y, rect);
-            paint.setStyle(Style.FILL);
-            paint.setColor(context.background);
-            Canvas canvas = drawable.lockCanvas(context);
-            canvas.drawRect(rect, paint);
-
-            paint.setColor(context.foreground);
-            canvas.drawText(str, x, y, paint);
-            if (DEBUG) Log.d(TAG, "Drawing text " + x + " " + y + " \"" + str + "\" " +
-                    Integer.toHexString(context.foreground));
-            drawable.unlockCanvas();
-        }
     }
 
     public static final int BITMAP = 0;
