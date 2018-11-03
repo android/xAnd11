@@ -17,7 +17,7 @@ package org.monksanctum.xand11.graphics;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Log;
 
 import static org.monksanctum.xand11.graphics.GraphicsManager.DEBUG;

@@ -15,7 +15,7 @@
 package org.monksanctum.xand11.graphics;
 
 import android.graphics.Rect;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 public interface XPaintable {
     void draw(XDrawable drawable, Rect bounds, @Nullable GraphicsContext context);

@@ -14,10 +14,10 @@
 
 package org.monksanctum.xand11.ui;
 
-import android.support.v14.preference.PreferenceFragment;
-import android.support.v7.preference.Preference;
-import android.support.v7.preference.PreferenceGroup;
-import android.support.v7.preference.PreferenceScreen;
+import androidx.preference.PreferenceFragment;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceGroup;
+import androidx.preference.PreferenceScreen;
 
 public abstract class LifecyclePreferenceFragment extends PreferenceFragment{
 

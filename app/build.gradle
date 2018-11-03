@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.2'
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
 
     defaultConfig {
         applicationId "org.monksanctum.xand11"
         minSdkVersion 21
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
     }
@@ -24,10 +24,10 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:27.0.2'
-    compile 'com.android.support:design:27.0.2'
-    compile 'com.android.support:preference-v14:27.0.2'
-    compile 'com.android.support:preference-v7:27.0.2'
+    api fileTree(dir: 'libs', include: ['*.jar'])
+    testImplementation 'junit:junit:4.12'
+    api 'androidx.appcompat:appcompat:1.0.0'
+    api 'com.google.android.material:material:1.1.0-alpha01'
+    api 'androidx.legacy:legacy-preference-v14:1.0.0'
+    api 'androidx.preference:preference:1.0.0'
 }

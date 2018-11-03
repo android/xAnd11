@@ -18,9 +18,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.support.v14.preference.SwitchPreference;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.preference.Preference;
+import androidx.preference.SwitchPreference;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.preference.Preference;
 import android.util.AttributeSet;
 
 import org.monksanctum.xand11.XService;
