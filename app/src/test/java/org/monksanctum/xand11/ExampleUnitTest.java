@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package xand11.monksanctum.org.xand11;
+package org.monksanctum.xand11;
 
 import org.junit.Test;
 
