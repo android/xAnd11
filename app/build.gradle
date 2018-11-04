@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 28
@@ -30,4 +31,8 @@ dependencies {
     api 'com.google.android.material:material:1.1.0-alpha01'
     api 'androidx.legacy:legacy-preference-v14:1.0.0'
     api 'androidx.preference:preference:1.0.0'
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+}
+repositories {
+    mavenCentral()
 }
