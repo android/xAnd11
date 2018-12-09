@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel>
+      <module name="core_androidMain" target="1.6" />
+      <module name="core_androidTest" target="1.6" />
+      <module name="core_jvmMain" target="1.6" />
+      <module name="core_jvmTest" target="1.6" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

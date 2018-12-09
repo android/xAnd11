@@ -20,20 +20,15 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
-import android.os.PersistableBundle
-import android.util.Log
 import android.view.KeyEvent
-import android.view.View
 import android.view.ViewGroup.LayoutParams
-import android.view.Window
-
-import org.monksanctum.xand11.Utils
 import org.monksanctum.xand11.XService
 import org.monksanctum.xand11.atoms.AtomManager
+import org.monksanctum.xand11.core.Platform
+import org.monksanctum.xand11.core.Utils
 import org.monksanctum.xand11.errors.WindowError
 import org.monksanctum.xand11.windows.PropertyCallback
 import org.monksanctum.xand11.windows.XWindow
-import org.monksanctum.xand11.windows.XWindow.Property
 
 class XActivity : Activity() {
 
@@ -158,7 +153,7 @@ class XActivity : Activity() {
     }
 
     private fun debugWindow(window: XWindow, prefix: String) {
-        Log.d(TAG, prefix + " " + window.bounds + " " + window.borderWidth + " "
+        Platform.logd(TAG, prefix + " " + window.bounds + " " + window.borderWidth + " "
                 + window.border + " " + window.background + " " + window.innerBounds
                 + " " + Integer.toHexString(window.visibility))
         synchronized(window) {

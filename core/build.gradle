@@ -1,0 +1,57 @@
+apply plugin: 'kotlin-multiplatform'
+apply plugin: 'com.android.library'
+
+//archivesBaseName = 'kotlin-multiplatform-recipes-common'
+
+//task sourcesJar(type: Jar) {
+//    classifier = 'sources'
+//    from sourceSets.main.kotlin
+//}
+
+//artifacts {
+//    archives sourcesJar
+//}
+//
+//repositories {
+//    mavenCentral()
+//}
+//
+
+kotlin {
+    targets {
+        fromPreset(presets.android, 'android')
+    }
+    sourceSets {
+        commonMain {
+            kotlin.srcDir('src/main/java')
+            dependencies {
+                implementation libraries.kotlin_stdlib_common
+            }
+        }
+        androidMain {
+            android {
+                compileSdkVersion 28
+            }
+            kotlin.srcDir('src/android/java')
+            dependencies {
+                api 'org.jetbrains.kotlin:kotlin-stdlib'
+                api 'androidx.appcompat:appcompat:1.0.0'
+                api 'com.google.android.material:material:1.1.0-alpha01'
+                api 'androidx.legacy:legacy-preference-v14:1.0.0'
+                api 'androidx.preference:preference:1.0.0'
+            }
+        }
+    }
+
+
+}
+//        implementation libraries.kotlin_stdlib_io
+//        testCompile libraries.kotlin_test_annotations_common
+//        testCompile libraries.kotlin_test_common
+//}
+//
+//dependencies {
+//}
+//
+//sourceCompatibility = "8"
+//targetCompatibility = "8"

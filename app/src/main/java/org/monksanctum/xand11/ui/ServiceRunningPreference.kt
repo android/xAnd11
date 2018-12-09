@@ -20,8 +20,9 @@ import android.content.Intent
 import android.content.IntentFilter
 import androidx.preference.SwitchPreference
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import androidx.preference.Preference
 import android.util.AttributeSet
+import org.monksanctum.xand11.core.STATE_CHANGED
+import org.monksanctum.xand11.core.isRunning
 
 import org.monksanctum.xand11.XService
 
@@ -29,7 +30,7 @@ class ServiceRunningPreference(context: Context, attrs: AttributeSet) : SwitchPr
 
     private val mReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            isChecked = XService.isRunning
+            isChecked = isRunning
         }
     }
 
@@ -46,8 +47,8 @@ class ServiceRunningPreference(context: Context, attrs: AttributeSet) : SwitchPr
 
     override fun onResume() {
         LocalBroadcastManager.getInstance(context).registerReceiver(mReceiver,
-                IntentFilter(XService.STATE_CHANGED))
-        isChecked = XService.isRunning
+                IntentFilter(STATE_CHANGED))
+        isChecked = isRunning
     }
 
     override fun onPause() {

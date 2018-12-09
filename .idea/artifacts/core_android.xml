@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="core-android">
+    <output-path>$PROJECT_DIR$/core/build/libs</output-path>
+    <root id="archive" name="core-android.jar">
+      <element id="module-output" name="core_androidMain" />
+    </root>
+  </artifact>
+</component>

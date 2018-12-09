@@ -1,27 +1,42 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlin_version = '1.3.0'
+    ext.kotlin_version = '1.3.10'
     repositories {
         jcenter()
+        mavenCentral()
         maven {
             url 'https://maven.google.com/'
             name 'Google'
         }
         google()
+        maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.2.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
     }
+}
+
+ext {
+    nodeVersion = '8.12.0'
+    libraries = [
+            junit: "junit:junit:4.12",
+            kotlin_stdlib: "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version",
+            kotlin_stdlib_common: "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version",
+            kotlin_stdlib_io: "org.jetbrains.kotlinx:kotlinx-io:0.1.0-beta-1",
+            kotlin_stdlib_js: "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version",
+            kotlin_test_annotations_common: "org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version",
+            kotlin_test_common: "org.jetbrains.kotlin:kotlin-test-common:$kotlin_version",
+            kotlin_test_js: "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version",
+            kotlin_test_junit: "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version",
+    ]
 }
 
 allprojects {
     repositories {
         jcenter()
+        mavenCentral()
         google()
     }
 }
