@@ -144,7 +144,7 @@ class XService : Service() {
     fun initColorNames(context: Context) {
         val input = context.resources.openRawResource(R.raw.rgb)
         val reader = BufferedReader(InputStreamReader(input))
-        var line: String = reader.readLine()
+        var line: String? = reader.readLine()
         try {
             while (line != null) {
                 val fields = line.split(",".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()

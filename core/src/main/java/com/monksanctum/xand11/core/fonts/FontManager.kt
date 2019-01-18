@@ -55,10 +55,10 @@ class FontManager {
         }
     }
 
-    fun getFont(fid: Int): Font {
+    fun getFont(fid: Int): Font? {
         synchronized(mFonts) {
             if (DEBUG) Platform.logd(TAG, "getFont " + intToHexString(fid))
-            return mFonts.get(fid)!!
+            return mFonts.get(fid)
         }
     }
 

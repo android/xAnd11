@@ -53,7 +53,7 @@ class DrawingProtocol(private val mGraphics: GraphicsManager, private val mFontM
         val context = mGraphics.getGc(gcontextId)
         val drawable = mGraphics.getDrawable(drawableId)
         synchronized(drawable) {
-            val font = mFontManager.getFont(context.font)
+            val font = mFontManager.getFont(context.font)!!
             val rect = Rect()
             font.getTextBounds(str, x, y, rect)
             font.drawText(drawable, context, str, x, y, rect)

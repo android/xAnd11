@@ -70,7 +70,7 @@ actual inline fun createBitmap(width: Int, height: Int, type: Int): Bitmap {
 }
 
 actual inline fun isValidConfigType(type: Int): Boolean {
-    return mConfigs.indexOfKey(type) < 0
+    return mConfigs.indexOfKey(type) >= 0
 }
 
 actual inline fun Socket.getHostAddress(): String {
@@ -173,7 +173,7 @@ actual class Platform {
         }
 
         actual fun drawColorPaintable(drawable: XDrawable, bounds: Rect, context: GraphicsContext?, color: ColorPaintable) {
-            val canvas = drawable.lockCanvas(context!!)
+            val canvas = drawable.lockCanvas(context)
             val p = if (context != null) Paint(context.paint) else Paint()
             p.color = color.mColor
             p.style = Paint.Style.FILL

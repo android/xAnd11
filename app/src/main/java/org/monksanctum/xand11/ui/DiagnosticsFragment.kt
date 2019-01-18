@@ -20,7 +20,7 @@ import org.monksanctum.xand11.R
 
 
 class DiagnosticsFragment : LifecyclePreferenceFragment() {
-    override fun onCreatePreferences(bundle: Bundle, s: String) {
+    override fun onCreatePreferences(bundle: Bundle?, s: String?) {
         addPreferencesFromResource(R.xml.diagnostics)
     }
 }
